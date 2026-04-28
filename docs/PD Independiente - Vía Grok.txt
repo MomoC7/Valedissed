@@ -1,0 +1,94 @@
+📄 1. IDEA Y DEFINICIÓN (LO MÁS IMPORTANTE)
+1.1 Problema → Copia directo de tu sección 2.3 Planteamiento del Problema
+1.2 Solución → Tu Resumen Ejecutivo (2.2) + Objetivo General (3.1)
+1.3 Usuario objetivo → Público objetivo implícito: mujeres de Medellín interesadas en belleza/moda + los 5 roles (Cliente, Partner, Business, Domiciliario, Staff).
+1.4 Propuesta de valor → Tu sección 2.4 Justificación (impacto para usuario final y para sector comercial).
+
+🎯 2. MVP (Producto mínimo viable)
+Aquí es donde debes enfocarte ahora.
+Tu documentación actual es muy completa, pero no tienes MVP explícito. Te recomiendo este MVP realista y alcanzable (máximo 8 funcionalidades):
+MVP Valedissed (Fase 1 – 6-8 semanas estimadas):
+
+Registro / Login / Verificación OTP (RF-01 a RF-06)
+Perfil básico + edición (RF-08 a RF-10) – solo rol Cliente primero
+Home + Buscador + Filtros básicos (RF-12, RF-13)
+Carrito persistente + Wishlist (RF-14, RF-15)
+Checkout simple (solo un vendedor por ahora) con Stripe (RF-16)
+Panel básico de Partner (publicar 1 producto/servicio) (RF-24, RF-26)
+Sistema de calificaciones básico (RF-40 a RF-42)
+Dashboard muy simple para Admin (RF-35, RF-37)
+
+Todo lo demás (The Wall, domiciliarios, Business completo, chat avanzado, IA futura, etc.) → Fase 2 o 3.
+
+🧠 3. FLUJO DEL USUARIO
+Puedes copiar/resumir los flujos que ya describiste por rol:
+
+Cliente: Entra → Registro → Home → Busca → Añade al carrito → Checkout → Pago → Recibe confirmación.
+Partner: Registro → Activa módulo vendedor/especialista → Publica producto/servicio → Gestiona agenda (básica en MVP).
+
+
+🧱 4. DECISIONES TÉCNICAS (rápidas)
+Ya lo tienes perfecto en tu sección 4.2 Stack Tecnológico. Solo cópialo:
+
+Frontend: Jinja2 + HTMX + Tailwind CSS (PWA)
+Backend: FastAPI + Python 3.13
+DB: PostgreSQL (Supabase) con RLS
+Pagos: Stripe Connect
+Hosting: Railway (CI/CD)
+Auth: Supabase Auth
+
+
+🗃️ 5. MODELO DE DATOS (básico)
+Aún no tienes ERD explícito en tu doc, pero ya mencionas tablas implícitas (usuarios con roles, productos, servicios, citas, pedidos, direcciones, etc.).
+Acción inmediata: Crea un diagrama simple (puedes usar dbdiagram.io o draw.io) con las entidades principales:
+
+users (con role)
+profiles (cliente/partner/business/etc.)
+products / services
+orders / order_items
+appointments
+addresses
+reviews
+
+
+🔌 6. API (si aplica)
+Ya tienes la base en tu documentación (aunque aún no están los endpoints detallados).
+Para MVP solo necesitas:
+
+Auth endpoints (Supabase ya te da la mayoría)
+/products, /services (CRUD básico)
+/cart, /checkout
+/orders
+
+Puedes ir agregando la sección 16 de tu doc (Documentación de API) a medida que vayas creando los endpoints.
+
+🎨 7. UI BÁSICA
+Tu doc menciona wireframes/mockups/prototipos (sección 8), pero aún no los tienes.
+Recomendación: Empieza directo en código con Tailwind + HTMX (es tu stack). Haz primero las pantallas clave del MVP (Home, Producto detalle, Carrito, Perfil). No pierdas tiempo en Figma completo ahora.
+
+🧑‍💻 8. PLAN DE DESARROLLO (simple)
+Usa Scrum como ya dijiste (sección 5.1), pero con sprints de 2 semanas.
+Ejemplo de roadmap ligero (MVP):
+
+Semana 1-2 → Setup proyecto + Auth completo + Perfiles básicos
+Semana 3-4 → Marketplace (productos + carrito + wishlist)
+Semana 5-6 → Checkout + Stripe + Panel Partner básico
+Semana 7-8 → Calificaciones + Testing + Deploy inicial
+
+
+🧪 9. TESTING (mínimo viable)
+
+Pruebas manuales de los flujos críticos del MVP.
+Unitarias en FastAPI para endpoints importantes.
+Testing de Stripe en modo test.
+
+
+🚀 10. LANZAMIENTO
+
+Deploy en Railway (ya lo tienes elegido)
+Dominio (puedes comprar valedissed.com o .co)
+Modo PWA activado desde el día 1
+
+
+📈 11. MEJORA CONTINUA
+Aquí irás agregando las fases 2 y 3 que ya mencionaste (Flutter, IA, expansión logística, The Wall, etc.).

@@ -1,0 +1,91 @@
+🚀 Valedissed: Roadmap de Desarrollo Independiente (MVP)
+
+Este documento extrae lo esencial de tu documentación técnica para enfocar el desarrollo en metas alcanzables, evitando la saturación.
+
+📄 1. Idea y Definición (Resumen)
+
+Problema: Fragmentación del mercado de belleza en Medellín.
+
+Solución: Marketplace centralizado (PWA) de productos y servicios femeninos.
+
+Usuario Objetivo: Mujeres en Medellín, especialistas de belleza y tiendas locales.
+
+Propuesta de Valor: Ecosistema seguro con un módulo social disruptivo ("The Wall").
+
+🎯 2. Definición del MVP (Prioridad Alta)
+
+Para lanzar la primera versión, no necesitamos las 72 funciones. Nos enfocaremos en:
+
+Registro y Perfiles: Cliente y Partner (Vendedor/Especialista).
+
+Catálogo Básico: Publicación de productos y servicios.
+
+Carrito y Pago: Integración básica con Stripe.
+
+Agendamiento: Calendario simple para citas.
+
+The Wall (Básico): Publicar un deseo y permitir que alguien lo pague.
+
+🧱 3. Stack Tecnológico (Confirmado)
+
+Backend: FastAPI (Python 3.13) + Pydantic v2.
+
+Base de Datos: PostgreSQL (vía Supabase).
+
+Frontend: Jinja2 + HTMX (para velocidad de desarrollo) + Tailwind CSS.
+
+Pagos: Stripe Connect.
+
+🗃️ 4. Modelo de Datos Inicial
+
+Necesitas estas tablas clave para arrancar:
+
+Users: (id, email, password_hash, role [client, partner, admin]).
+
+Profiles: (user_id, bio, avatar, location).
+
+Products: (id, partner_id, name, price, stock).
+
+Services: (id, partner_id, name, duration, price).
+
+Appointments: (id, client_id, service_id, date, status).
+
+Wishes (The Wall): (id, client_id, item_id, status [pending, gifted]).
+
+🧑‍💻 5. Plan de Ejecución (Semanas 1-4)
+
+Fase 1: Cimientos (Semana 1)
+
+Configurar entorno (FastAPI + Supabase).
+
+Implementar RF-01 a RF-04: Registro, Login y manejo de JWT.
+
+Creación de perfiles básicos.
+
+Fase 2: El Corazón del Comercio (Semana 2)
+
+CRUD de Productos y Servicios para Partners (RF-24 a RF-27).
+
+Vista de catálogo para Clientes (RF-12, RF-13).
+
+Fase 3: Transacciones y Citas (Semana 3)
+
+Carrito de compras persistente (RF-14).
+
+Flujo básico de reserva de citas (RF-17).
+
+Integración inicial de Stripe para pagos simples.
+
+Fase 4: El Factor Diferencial (Semana 4)
+
+Implementación de "The Wall" (RF-48): El tablón de anuncios.
+
+Lógica de "Regalar" un ítem del catálogo.
+
+🚀 6. Próximos Pasos (Post-MVP)
+
+Módulo de Domiciliarios (Validación PIN/QR).
+
+Chat por WebSockets.
+
+Notificaciones Push (PWA).

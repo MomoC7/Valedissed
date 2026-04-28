@@ -1,0 +1,78 @@
+📄 1. IDEA Y DEFINICIÓN (LO MÁS IMPORTANTE)
+1.1 Problema
+¿Qué problema resuelve?
+1.2 Solución
+¿Qué hace tu app?
+1.3 Usuario objetivo
+¿Quién la usaría?
+1.4 Propuesta de valor
+¿Por qué alguien usaría esto y no otra cosa?
+
+
+🎯 2. MVP (Producto mínimo viable)
+2.1 Funcionalidades principales (máximo 5–10)
+
+Ejemplo:
+
+Registro/login
+Crear contenido
+Ver contenido
+Editar
+
+👉 Nada más. Aquí la gente falla por querer hacer TODO.
+
+🧠 3. FLUJO DEL USUARIO
+¿Qué hace el usuario paso a paso?
+
+Ejemplo:
+
+Entra
+Se registra
+Crea algo
+Lo usa
+🧱 4. DECISIONES TÉCNICAS (rápidas)
+4.1 Stack
+Frontend: React / Next
+Backend: Node / Django
+DB: PostgreSQL
+4.2 Hosting
+Vercel / AWS / etc.
+
+👉 No necesita justificarse como en empresa.
+
+🗃️ 5. MODELO DE DATOS (básico)
+Usuarios
+Objetos principales de tu app
+
+Un diagrama simple o lista ya sirve.
+
+🔌 6. API (si aplica)
+Endpoints principales
+Qué hacen
+🎨 7. UI BÁSICA
+Wireframes simples (puede ser en papel)
+O directo en código
+
+👉 Se puede omitir Figma si se desea.
+
+🧑‍💻 8. PLAN DE DESARROLLO (simple)
+
+Ejemplo:
+
+Semana 1 → Login
+Semana 2 → Feature principal
+Semana 3 → UI básica
+🧪 9. TESTING (mínimo viable)
+Probar manualmente
+Casos críticos
+
+👉 No se necesita QA formal.
+
+🚀 10. LANZAMIENTO
+Deploy
+Dominio
+Publicarlo
+📈 11. MEJORA CONTINUA
+Feedback de usuarios
+Nuevas features
+Corrección de bugs

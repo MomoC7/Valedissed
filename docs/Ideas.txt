@@ -1,0 +1,11 @@
+idea 1: garantizar mis ganancias mediante el sistema de reseñas: existe la posibilidad de que el cliente y vendedor o prestador de servicios, puedan comunicarse y concretar ventas o servicios por fuera de la plataforma, de esta manera no tienen que preocuparse por cobro de comisión, lo cual resulta no positivo para mi.
+
+como abordar esto? el cliente puede calificar la atención, el servicio y el producto recibidos, pero para que esta calificación se vea reflejada para quien vende, deberá existir un registro de transacción.
+
+como sé que esto va a funcionar? todo vendedor o prestador de servicios, quiere y necesita tener reseñas, ya que esto garantiza la confianza del cliente a la hora de pagar por algo, si no hay reseñas o son negativas, el cliente no compra.
+
+una transacción, es cuando el cliente recibe el producto o el servicio, y el vender recibe el dinero, al momento de esta realizarse, el cliente tiene la opción de calificar, entonces, si estos optan por no realizar la venta por medio de la plataforma, resulta poco beneficioso para el vendedor pues no tiene como ganar reseñas, de esta manera, el vendedor considera mantener un buen margen de ventas mediante la plataforma, asegurando así su buena calificación, como nosotros nuestra comisión por transacción.
+
+idea 2: implementar sistema de envío de regalos: cuando los usuarios agregan productos o servicios a "deseados", pueden solicitar a otro usuario que realice el pago de este (mediante id o palabra clave, para que se pueda enviar esta solicitud solo si el que va a pagar, lo brinda, no mandarle a cualquiera). de esta manera, si alguien va a comprar y otro va a pagar, quien va a pagar puede evitar correr el riesgo de registrar su medio de pago en otra cuenta, en vez de eso, desde su propia cuenta acepta la solicitud y realiza el pago.
+
+también, puede agregarse una especie de tablón, en la cual clientes puedan subir solicitudes de regalo, y otros usuarios registrados puedan verlas de manera anónima (sin que quienes suben puedan ver quienes revisan las solicitudes), de esta manera, podemos aumentar el índice de ganancias, cómo? es una buena manera de que hombres conquisten mujeres mediante estos regalos, pues al realizar el pago de dicha solicitud de regalo, puede habilitarse un chat directo entre ambas partes

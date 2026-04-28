@@ -1,0 +1,63 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Valedissed - Tu Marketplace de Belleza en Medellín{% endblock %}
+
+{% block content %}
+<div class="py-12 px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-4xl mx-auto">
+        <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-6xl mb-6">
+            Bienvenida a <span class="text-brand-primary">Valedissed</span>
+        </h1>
+        <p class="text-xl text-gray-600 mb-10">
+            Encuentra los mejores productos y servicios de belleza y moda femenina en un solo lugar.
+            Conecta con especialistas, agenda tus citas y descubre <span class="font-bold text-brand-secondary">The Wall</span>, 
+            nuestro sistema de regalos disruptivo.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
+            <a href="/explore" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-primary hover:bg-opacity-90 md:py-4 md:text-lg md:px-10 shadow-lg transition">
+                Explorar Marketplace
+            </a>
+            <a href="/wall" class="inline-flex items-center justify-center px-8 py-3 border border-brand-secondary text-base font-medium rounded-md text-brand-secondary bg-white hover:bg-brand-secondary hover:text-white md:py-4 md:text-lg md:px-10 shadow-md transition">
+                Visitar The Wall
+            </a>
+        </div>
+    </div>
+    
+    <!-- Sección de Categorías Rápidas -->
+    <div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div class="bg-white p-8 rounded-2xl shadow-sm border hover:shadow-xl transition group">
+            <div class="h-12 w-12 bg-pink-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-brand-primary transition">
+                <span class="text-2xl">💄</span>
+            </div>
+            <h3 class="text-xl font-bold mb-4">Productos</h3>
+            <p class="text-gray-600">Lo mejor en maquillaje, cuidado de la piel y moda de tiendas locales de Medellín.</p>
+        </div>
+        
+        <div class="bg-white p-8 rounded-2xl shadow-sm border hover:shadow-xl transition group">
+            <div class="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-brand-secondary transition">
+                <span class="text-2xl">✂️</span>
+            </div>
+            <h3 class="text-xl font-bold mb-4">Servicios</h3>
+            <p class="text-gray-600">Agenda citas con las mejores especialistas en uñas, cabello, pestañas y más.</p>
+        </div>
+        
+        <div class="bg-white p-8 rounded-2xl shadow-sm border hover:shadow-xl transition group">
+            <div class="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-blue-500 transition">
+                <span class="text-2xl">🎁</span>
+            </div>
+            <h3 class="text-xl font-bold mb-4">The Wall</h3>
+            <p class="text-gray-600">Publica tus deseos y deja que alguien especial los haga realidad de forma segura.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Sección HTMX de prueba -->
+<div class="mt-20 text-center py-12 bg-gray-100 rounded-3xl max-w-4xl mx-auto border-2 border-dashed border-gray-300">
+    <h4 class="text-lg font-medium text-gray-500 mb-4">Prueba de interactividad HTMX</h4>
+    <button hx-get="/api/v1/health" hx-target="#health-result" class="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-black transition">
+        Verificar Estado del Sistema
+    </button>
+    <div id="health-result" class="mt-4 font-mono text-sm text-brand-primary"></div>
+</div>
+{% endblock %}
