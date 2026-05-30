@@ -1,0 +1,150 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Mis Servicios - Valedissed Partner{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-serif font-bold text-brand-secondary dark:text-valedissed-dark-gold">Mis Servicios</h1>
+            <p class="text-gray-600 dark:text-gray-400 mt-1">Gestiona los servicios de belleza o bienestar que ofreces.</p>
+        </div>
+        <button id="add-service-btn" class="btn-vld-primary">
+            + Nuevo Servicio
+        </button>
+    </div>
+
+    <!-- Mensajes de estado -->
+    <div id="status-message" class="hidden mb-6 p-4 rounded-xl text-sm font-medium"></div>
+
+    <!-- Loader -->
+    <div id="loader" class="flex justify-center py-12">
+        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand-primary"></div>
+    </div>
+
+    <!-- Grid de servicios -->
+    <div id="services-grid" class="hidden grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Los servicios se inyectarán aquí -->
+    </div>
+
+    <!-- Estado vacío -->
+    <div id="empty-state" class="hidden text-center py-20 bg-white/50 dark:bg-valedissed-dark-surface rounded-3xl border border-gray-100 dark:border-valedissed-dark-border">
+        <div class="text-5xl mb-4">✂️</div>
+        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Aún no tienes servicios</h3>
+        <p class="text-gray-500 dark:text-gray-400 mb-6">Agrega tus servicios para que los clientes puedan agendar contigo.</p>
+        <button onclick="document.getElementById('add-service-btn').click()" class="btn-vld-secondary">
+            Crear mi primer servicio
+        </button>
+    </div>
+</div>
+
+<!-- Modal de Crear/Editar Servicio -->
+<div id="service-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div class="absolute inset-0 bg-black/60 backdrop-blur-sm" id="modal-backdrop"></div>
+    
+    <div class="relative bg-white dark:bg-valedissed-dark-surface rounded-3xl shadow-2xl border border-pink-100/60 dark:border-valedissed-dark-border w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div class="p-6 border-b border-gray-100 dark:border-valedissed-dark-border flex justify-between items-center">
+            <h3 id="modal-title" class="text-2xl font-serif font-bold text-brand-secondary dark:text-valedissed-dark-gold">Nuevo Servicio</h3>
+            <button id="close-modal-btn" class="text-gray-400 hover:text-brand-primary transition-colors">
+                <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        
+        <div class="p-6 overflow-y-auto flex-1">
+            <form id="service-form" class="space-y-6">
+                <input type="hidden" id="service_id" name="service_id">
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre del servicio *</label>
+                        <input type="text" id="title" required class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-valedissed-dark-border bg-transparent dark:text-white focus:ring-2 focus:ring-brand-primary">
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Descripción *</label>
+                        <textarea id="description" rows="3" required placeholder="Describe qué incluye el servicio..." class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-valedissed-dark-border bg-transparent dark:text-white focus:ring-2 focus:ring-brand-primary"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Precio base ($) *</label>
+                        <input type="number" id="price" min="0" step="0.01" required class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-valedissed-dark-border bg-transparent dark:text-white focus:ring-2 focus:ring-brand-primary">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Duración estimada (minutos) *</label>
+                        <select id="duration_minutes" required class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-valedissed-dark-border bg-transparent dark:text-white focus:ring-2 focus:ring-brand-primary">
+                            <option value="15">15 min</option>
+                            <option value="30">30 min</option>
+                            <option value="45">45 min</option>
+                            <option value="60">1 hora</option>
+                            <option value="90">1 hora y 30 min</option>
+                            <option value="120">2 horas</option>
+                            <option value="180">3 horas</option>
+                            <option value="240">4 horas o más</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Categoría *</label>
+                        <select id="category" required class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-valedissed-dark-border bg-transparent dark:text-white focus:ring-2 focus:ring-brand-primary">
+                            <option value="">Seleccionar</option>
+                            <option value="cabello">Corte y Peinado</option>
+                            <option value="colorimetria">Colorimetría</option>
+                            <option value="maquillaje">Maquillaje</option>
+                            <option value="unas">Manicura y Pedicura</option>
+                            <option value="pestanas">Pestañas y Cejas</option>
+                            <option value="depilacion">Depilación</option>
+                            <option value="spa">Masajes y Spa</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Modalidad de atención</label>
+                        <select id="modality" class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-valedissed-dark-border bg-transparent dark:text-white focus:ring-2 focus:ring-brand-primary">
+                            <option value="estudio">En mi estudio / local</option>
+                            <option value="domicilio">A domicilio</option>
+                            <option value="ambas">Ambas</option>
+                        </select>
+                    </div>
+                    
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Requisitos previos para el cliente (opcional)</label>
+                        <textarea id="requirements" rows="2" placeholder="Ej: Venir con el cabello limpio y seco, sin maquillaje, etc." class="w-full px-4 py-3 rounded-xl border border-gray-200 dark:border-valedissed-dark-border bg-transparent dark:text-white focus:ring-2 focus:ring-brand-primary"></textarea>
+                    </div>
+                </div>
+
+                <!-- Sección de fotos de portafolio (solo al editar) -->
+                <div id="photos-section" class="hidden mt-8 pt-6 border-t border-gray-100 dark:border-valedissed-dark-border">
+                    <h4 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Portafolio del Servicio</h4>
+                    <p class="text-sm text-gray-500 mb-4">Sube fotos de tus resultados (antes/después o trabajo final). Hasta 6 fotos. La primera será la portada.</p>
+                    
+                    <div class="flex gap-4 items-center">
+                        <input type="file" id="image-upload" accept="image/*" class="hidden">
+                        <button type="button" onclick="document.getElementById('image-upload').click()" class="btn-vld-secondary py-2 px-4 text-xs">
+                            Seleccionar foto
+                        </button>
+                        <button type="button" id="upload-btn" class="bg-gray-800 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-gray-700 hidden">
+                            Subir
+                        </button>
+                        <span id="upload-status" class="text-sm text-brand-primary"></span>
+                    </div>
+                    
+                    <div id="images-grid" class="mt-4 flex gap-4 overflow-x-auto pb-4">
+                        <!-- Las imágenes se cargan aquí -->
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <button type="submit" id="save-btn" class="w-full btn-vld-primary py-3 text-base">
+                        Guardar Servicio
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', path='js/seller_services.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,55 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Valedissed - Tu Marketplace de Belleza en Medellín{% endblock %}
+
+{% block content %}
+<div class="py-12 px-4 sm:px-6 lg:px-8">
+    <div class="text-center max-w-4xl mx-auto">
+        <h1 id="welcome-container" class="text-5xl font-serif font-bold tracking-tight text-brand-secondary sm:text-6xl mb-6 drop-shadow-sm">
+            Bienvenid@ a <span class="metal-text-valedissed font-extrabold">Valedissed</span>.
+        </h1>
+        <p class="text-xl text-brand-dark dark:text-gray-300 opacity-90 mb-10 font-light leading-relaxed">
+            Encuentra los mejores productos y servicios de belleza y moda femenina en un solo lugar.
+            Conecta con especialistas y descubre <span class="font-black text-brand-primary primary-color-animated">The Wall</span>, nuestro novedoso sistema de regalos.
+        </p>
+        
+        <div class="flex flex-col sm:flex-row justify-center items-center gap-6 mt-12">
+            <a href="/marketplace" class="btn-vld-primary w-full sm:w-auto">
+                Explorar Marketplace
+            </a>
+            <a href="/wall" class="btn-vld-secondary w-full sm:w-auto">
+                Visitar The Wall
+            </a>
+        </div>
+    </div>
+    
+    <div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <!-- Tarjeta Productos -->
+        <div class="cursor-pointer bg-white dark:bg-valedissed-dark-surface p-8 rounded-3xl shadow-md dark:shadow-none border-b-4 border-brand-primary hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
+            <div class="h-16 w-16 bg-pink-100 dark:bg-valedissed-dark-elevated rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand-primary dark:group-hover:bg-brand-primary transition-all duration-300">
+                <span class="text-3xl group-hover:text-white transition-colors duration-300">💄</span>
+            </div>
+            <h3 class="text-2xl font-serif font-bold mb-4 text-brand-secondary dark:text-gray-100">Productos</h3>
+            <p class="text-brand-dark/90 dark:text-gray-400 font-medium">Lo mejor en maquillaje y cuidado de la piel de tiendas locales y exclusivas.</p>
+        </div>
+        
+        <!-- Tarjeta Servicios -->
+        <div class="cursor-pointer bg-white dark:bg-valedissed-dark-surface p-8 rounded-3xl shadow-md dark:shadow-none border-b-4 border-brand-secondary hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
+            <div class="h-16 w-16 bg-purple-100 dark:bg-valedissed-dark-elevated rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand-secondary dark:group-hover:bg-brand-secondary transition-all duration-300">
+                <span class="text-3xl group-hover:text-white transition-colors duration-300">✨</span>
+            </div>
+            <h3 class="text-2xl font-serif font-bold mb-4 text-brand-secondary dark:text-gray-100">Servicios</h3>
+            <p class="text-brand-dark/90 dark:text-gray-400 font-medium">Agenda citas con especialistas en uñas, cabello, pestañas y spa.</p>
+        </div>
+        
+        <!-- Tarjeta The Wall -->
+        <div class="cursor-pointer bg-white dark:bg-valedissed-dark-surface p-8 rounded-3xl shadow-md dark:shadow-none border-b-4 border-brand-gold hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group">
+            <div class="h-16 w-16 bg-yellow-100 dark:bg-valedissed-dark-elevated rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand-gold dark:group-hover:bg-brand-gold transition-all duration-300">
+                <span class="text-3xl group-hover:text-white transition-colors duration-300">🌙</span>
+            </div>
+            <h3 class="text-2xl font-serif font-bold mb-4 text-brand-secondary dark:text-gray-100">The Wall</h3>
+            <p class="text-brand-dark/90 dark:text-gray-400 font-medium">Publica tus deseos y deja que alguien especial los haga realidad.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

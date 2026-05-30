@@ -1,0 +1,113 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Detalle del producto - Valedissed{% endblock %}
+
+{% block content %}
+<div class="relative py-10 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto space-y-10">
+        <section class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] items-start">
+            <div class="space-y-6">
+                <div id="product-gallery" class="grid gap-4">
+                    <div id="main-image" class="rounded-[2rem] overflow-hidden bg-gray-100 dark:bg-valedissed-dark-elevated h-[480px] flex items-center justify-center">
+                        <span class="text-gray-400">Cargando imagen...</span>
+                    </div>
+                    <div id="gallery-thumbnails" class="grid grid-cols-3 gap-3"></div>
+                </div>
+
+                <div id="product-details" class="space-y-6">
+                    <div class="flex flex-wrap items-center gap-3">
+                        <span id="product-category" class="inline-flex items-center rounded-full bg-pink-100 text-pink-700 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em]"></span>
+                        <span id="seller-badge" class="inline-flex items-center rounded-full bg-brand-soft text-brand-primary px-3 py-1 text-sm font-medium"></span>
+                    </div>
+                    <div>
+                        <h1 id="product-title" class="text-4xl lg:text-5xl font-serif font-extrabold text-brand-dark dark:text-gray-100 leading-tight max-w-3xl"></h1>
+                        <p id="product-subtitle" class="mt-4 text-sm text-gray-500 dark:text-gray-400 max-w-2xl"></p>
+                    </div>
+
+                    <div class="grid gap-4 lg:grid-cols-3">
+                        <div class="rounded-3xl border border-pink-100/60 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-surface p-6 shadow-sm">
+                            <p class="text-sm uppercase tracking-[0.2em] text-gray-400 mb-2">Precio</p>
+                            <p id="product-price" class="text-4xl font-bold text-brand-primary">$0</p>
+                        </div>
+                        <div class="rounded-3xl border border-pink-100/60 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-surface p-6 shadow-sm">
+                            <p class="text-sm uppercase tracking-[0.2em] text-gray-400 mb-2">Valoración</p>
+                            <div class="flex items-center gap-3">
+                                <div id="product-rating" class="text-yellow-500 text-lg"></div>
+                                <span id="product-review-count" class="text-gray-500 dark:text-gray-400 text-sm"></span>
+                            </div>
+                        </div>
+                        <div class="rounded-3xl border border-pink-100/60 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-surface p-6 shadow-sm">
+                            <p class="text-sm uppercase tracking-[0.2em] text-gray-400 mb-2">Disponibilidad</p>
+                            <p id="product-stock" class="text-lg font-semibold text-brand-dark dark:text-gray-100">Disponible</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid gap-6 lg:grid-cols-[2fr_1fr]">
+                    <div class="rounded-3xl border border-pink-100/60 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-surface p-8 shadow-sm">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Descripción</h2>
+                        <p id="product-description" class="text-gray-600 dark:text-gray-300 leading-8"></p>
+                    </div>
+                    <div class="rounded-3xl border border-pink-100/60 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-surface p-8 shadow-sm">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Detalles</h2>
+                        <ul id="product-attributes" class="space-y-3 text-gray-600 dark:text-gray-300 text-sm"></ul>
+                    </div>
+                </div>
+            </div>
+
+            <aside class="space-y-6">
+                <div class="rounded-[2rem] border border-pink-100/60 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-surface p-7 shadow-sm sticky top-24">
+                    <div class="mb-6">
+                        <p class="text-xs uppercase tracking-[0.25em] text-gray-400">Vendedor</p>
+                        <h2 id="seller-name" class="mt-3 text-2xl font-semibold text-brand-dark dark:text-gray-100"></h2>
+                        <p id="seller-description" class="mt-2 text-sm text-gray-500 dark:text-gray-400">Ver perfil completo del vendedor y su estilo exclusivo.</p>
+                    </div>
+                    <div class="space-y-3">
+                        <button id="buy-now-button" class="btn-vld-primary w-full text-center">Comprar ahora</button>
+                        <a id="seller-profile-button" href="#" class="btn-vld-secondary w-full text-center block">Ir al perfil del vendedor</a>
+                    </div>
+                </div>
+
+                <div class="rounded-[2rem] border border-pink-100/60 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-surface p-7 shadow-sm">
+                    <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">¿Por qué elegir este producto?</h2>
+                    <ul class="space-y-3 text-gray-600 dark:text-gray-300 text-sm">
+                        <li class="flex gap-3"><span class="text-brand-primary">•</span> Diseño pensado para la experiencia premium.</li>
+                        <li class="flex gap-3"><span class="text-brand-primary">•</span> Presentación elegante y confortable.</li>
+                        <li class="flex gap-3"><span class="text-brand-primary">•</span> Ideal para un público femenino exigente.</li>
+                    </ul>
+                </div>
+            </aside>
+        </section>
+
+        <section class="space-y-6">
+            <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+                <div>
+                    <p class="text-sm uppercase tracking-[0.3em] text-gray-400">Más productos de este vendedor</p>
+                    <h2 class="mt-2 text-3xl font-bold text-brand-dark dark:text-gray-100">Selección exclusiva</h2>
+                </div>
+                <a id="seller-profile-link" href="#" class="text-sm font-semibold uppercase tracking-[0.25em] text-brand-primary hover:text-brand-secondary">Ir al perfil del vendedor →</a>
+            </div>
+            <div id="seller-products-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5"></div>
+            <p id="no-seller-products" class="hidden text-center text-gray-500 dark:text-gray-400">Aún no hay más productos de este vendedor.</p>
+        </section>
+
+        <section class="space-y-6">
+            <div>
+                <p class="text-sm uppercase tracking-[0.3em] text-gray-400">Productos relacionados</p>
+                <h2 class="mt-2 text-3xl font-bold text-brand-dark dark:text-gray-100">Descubre más</h2>
+            </div>
+            <div id="related-products-grid" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5"></div>
+            <p id="no-related-products" class="hidden text-center text-gray-500 dark:text-gray-400">No se encontraron productos relacionados por ahora.</p>
+        </section>
+
+        <section class="rounded-[2rem] border border-pink-100/60 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-surface p-8 shadow-sm">
+            <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Reseñas y comentarios</h2>
+            <p class="text-gray-500 dark:text-gray-400">Aún no hay reseñas disponibles. Pronto podrás ver opiniones reales de otras clientes y recomendaciones de estilo.</p>
+        </section>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', path='js/product_detail.js') }}"></script>
+{% endblock %}

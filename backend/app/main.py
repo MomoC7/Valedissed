@@ -4,6 +4,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 import os
 from backend.app.core.config import settings
+from backend.app.api.v1.api import api_router 
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -12,44 +13,159 @@ app = FastAPI(
     debug=settings.DEBUG,
 )
 
-# Configurar CORS (Útil para PWA e integraciones externas)
+# --- Configuración de Archivos ---
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# Montaje de archivos estáticos y plantillas
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+
+# --- Middleware ---
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # En producción cambiar por dominios específicos
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# Configurar archivos estáticos (Compilados desde frontend/src)
-app.mount("/static", StaticFiles(directory="backend/app/static"), name="static")
+# --- Registro de Routers ---
+app.include_router(api_router, prefix=settings.API_V1_STR)
 
-# Configurar plantillas Jinja2
-templates = Jinja2Templates(directory="backend/app/templates")
-
-# Inyectar variables globales a las plantillas
-@app.middleware("http")
-async def add_process_time_header(request: Request, call_next):
-    request.state.project_name = settings.PROJECT_NAME
-    response = await call_next(request)
-    return response
-
-# --- Registro de Rutas ---
-
-@app.get("/api/v1/health")
-async def health_check():
-    """Endpoint para verificar el estado del sistema."""
-    return {"status": "ok", "message": f"Sistema {settings.PROJECT_NAME} funcionando correctamente."}
+# --- Rutas de Frontend y Utilidad ---
 
 @app.get("/")
 async def root(request: Request):
-    """Ruta de bienvenida o landing page principal."""
+    # Página de bienvenida pública (no requiere autenticación)
     return templates.TemplateResponse(
         request=request, 
-        name="pages/index.html"
+        name="pages/welcome.html", 
+        context={"settings": settings}
+    )
+
+@app.get("/dashboard")
+async def dashboard(request: Request):
+    # Dashboard para usuarios autenticados
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/index.html",
+        context={"settings": settings}
+    )
+
+@app.get("/admin")
+async def admin_page(request: Request):
+    """Vista centralizada del Panel de Administración."""
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/admin/index.html",
+        context={"settings": settings}
+    )
+
+@app.get("/health")
+async def health_check():
+    """Endpoint de salud para pruebas de HTMX y monitoreo."""
+    return {
+        "status": "ok", 
+        "project": settings.PROJECT_NAME,
+        "environment": settings.ENV
+    }
+
+@app.get("/profile")
+async def profile_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/profile.html",
+        context={"settings": settings}
+    )
+
+@app.get("/admin/users")
+async def admin_users_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/admin/users.html",
+        context={"settings": settings}
+    )
+
+@app.get("/auth/confirm")
+async def confirm_email(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/auth/confirm.html",
+        context={"settings": settings}
+    )
+
+@app.get("/forgot-password")
+async def forgot_password_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/auth/forgot_password.html",
+        context={"settings": settings}
+    )
+
+@app.get("/auth/reset-password")
+async def reset_password_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/auth/reset_password.html",
+        context={"settings": settings}
+    )
+
+@app.get("/login")
+async def login_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/auth/login.html",
+        context={"settings": settings}
+    )
+
+@app.get("/register")
+async def register_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/auth/register.html",
+        context={"settings": settings}
+    )
+
+@app.get("/marketplace")
+async def marketplace_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/marketplace.html",
+        context={"settings": settings}
+    )
+
+@app.get("/product/{product_id}")
+async def product_page(request: Request, product_id: str):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/product_detail.html",
+        context={"settings": settings, "product_id": product_id}
+    )
+
+@app.get("/seller/{seller_id}")
+async def seller_profile_page(request: Request, seller_id: str):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/seller_profile.html",
+        context={"settings": settings, "seller_id": seller_id}
+    )
+
+@app.get("/seller/products")
+async def seller_products_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/seller/products.html",
+        context={"settings": settings}
+    )
+
+@app.get("/seller/services")
+async def seller_services_page(request: Request):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/seller/services.html",
+        context={"settings": settings}
     )
 
 if __name__ == "__main__":
     import uvicorn
-    # En desarrollo activamos reload para que los cambios se reflejen al instante
     uvicorn.run("backend.app.main:app", host="0.0.0.0", port=8000, reload=True)

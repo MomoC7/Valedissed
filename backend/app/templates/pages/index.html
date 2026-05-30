@@ -1,63 +1,86 @@
 {% extends "layouts/base.html" %}
 
-{% block title %}Valedissed - Tu Marketplace de Belleza en Medellín{% endblock %}
+{% block title %}Dashboard - Valedissed{% endblock %}
 
 {% block content %}
-<div class="py-12 px-4 sm:px-6 lg:px-8">
-    <div class="text-center max-w-4xl mx-auto">
-        <h1 class="text-4xl font-extrabold tracking-tight text-gray-900 sm:text-6xl mb-6">
-            Bienvenida a <span class="text-brand-primary">Valedissed</span>
-        </h1>
-        <p class="text-xl text-gray-600 mb-10">
-            Encuentra los mejores productos y servicios de belleza y moda femenina en un solo lugar.
-            Conecta con especialistas, agenda tus citas y descubre <span class="font-bold text-brand-secondary">The Wall</span>, 
-            nuestro sistema de regalos disruptivo.
-        </p>
-        
-        <div class="flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6">
-            <a href="/explore" class="inline-flex items-center justify-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-white bg-brand-primary hover:bg-opacity-90 md:py-4 md:text-lg md:px-10 shadow-lg transition">
-                Explorar Marketplace
-            </a>
-            <a href="/wall" class="inline-flex items-center justify-center px-8 py-3 border border-brand-secondary text-base font-medium rounded-md text-brand-secondary bg-white hover:bg-brand-secondary hover:text-white md:py-4 md:text-lg md:px-10 shadow-md transition">
-                Visitar The Wall
-            </a>
-        </div>
-    </div>
-    
-    <!-- Sección de Categorías Rápidas -->
-    <div class="mt-24 grid grid-cols-1 md:grid-cols-3 gap-8 max-w-7xl mx-auto">
-        <div class="bg-white p-8 rounded-2xl shadow-sm border hover:shadow-xl transition group">
-            <div class="h-12 w-12 bg-pink-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-brand-primary transition">
-                <span class="text-2xl">💄</span>
+<div id="content" class="hidden">
+    <!-- Dashboard del usuario logueado -->
+    <div class="py-12 px-4 sm:px-6 lg:px-8">
+        <div class="max-w-7xl mx-auto">
+            <div class="mb-12">
+                <h1 id="dashboard-container" class="text-4xl font-serif font-bold text-brand-secondary dark:text-gray-100 mb-4 drop-shadow-sm">
+                    Hola, <span class="metal-text-gray font-bold">Invitado</span>.
+                </h1>
+                <p class="text-xl text-brand-dark/80 dark:text-gray-300 font-light">
+                    Aquí puedes gestionar tu cuenta, ver tus compras, servicios y más.
+                </p>
             </div>
-            <h3 class="text-xl font-bold mb-4">Productos</h3>
-            <p class="text-gray-600">Lo mejor en maquillaje, cuidado de la piel y moda de tiendas locales de Medellín.</p>
-        </div>
-        
-        <div class="bg-white p-8 rounded-2xl shadow-sm border hover:shadow-xl transition group">
-            <div class="h-12 w-12 bg-purple-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-brand-secondary transition">
-                <span class="text-2xl">✂️</span>
+
+            <!-- Grid de opciones principales -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+                <!-- Card: Mis Compras -->
+                <div class="bg-white dark:bg-valedissed-dark-surface p-8 rounded-3xl shadow-md dark:shadow-none border-b-4 border-brand-primary dark:border-valedissed-dark-border hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                    <div class="h-16 w-16 bg-pink-100 dark:bg-valedissed-dark-elevated rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand-primary dark:group-hover:bg-brand-primary transition-all duration-300">
+                        <span class="text-3xl group-hover:text-white transition-colors duration-300">🛍️</span>
+                    </div>
+                    <h3 class="text-2xl font-serif font-bold mb-2 text-brand-secondary dark:text-gray-100">Mis Compras</h3>
+                    <p class="text-brand-dark/90 dark:text-gray-400 font-medium mb-4">Productos que has adquirido</p>
+                    <a href="#" class="text-brand-primary font-bold hover:text-brand-gold transition-colors">Ver más →</a>
+                </div>
+
+                <!-- Card: Mis Servicios -->
+                <div class="bg-white dark:bg-valedissed-dark-surface p-8 rounded-3xl shadow-md dark:shadow-none border-b-4 border-brand-secondary dark:border-valedissed-dark-border hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                    <div class="h-16 w-16 bg-purple-100 dark:bg-valedissed-dark-elevated rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand-secondary dark:group-hover:bg-brand-secondary transition-all duration-300">
+                        <span class="text-3xl group-hover:text-white transition-colors duration-300">📅</span>
+                    </div>
+                    <h3 class="text-2xl font-serif font-bold mb-2 text-brand-secondary dark:text-gray-100">Mis Servicios</h3>
+                    <p class="text-brand-dark/90 dark:text-gray-400 font-medium mb-4">Citas y servicios agendados</p>
+                    <a href="#" class="text-brand-secondary font-bold hover:text-brand-gold transition-colors">Ver más →</a>
+                </div>
+
+                <!-- Card: Mis Deseos (The Wall) -->
+                <div class="bg-white dark:bg-valedissed-dark-surface p-8 rounded-3xl shadow-md dark:shadow-none border-b-4 border-brand-gold dark:border-valedissed-dark-border hover:shadow-2xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer">
+                    <div class="h-16 w-16 bg-yellow-100 dark:bg-valedissed-dark-elevated rounded-full flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-brand-gold dark:group-hover:bg-brand-gold transition-all duration-300">
+                        <span class="text-3xl group-hover:text-white transition-colors duration-300">🎁</span>
+                    </div>
+                    <h3 class="text-2xl font-serif font-bold mb-2 text-brand-secondary dark:text-gray-100">The Wall</h3>
+                    <p class="text-brand-dark/90 dark:text-gray-400 font-medium mb-4">Tus deseos y regalos</p>
+                    <a href="#" class="text-brand-gold font-bold hover:text-brand-primary transition-colors">Ver más →</a>
+                </div>
             </div>
-            <h3 class="text-xl font-bold mb-4">Servicios</h3>
-            <p class="text-gray-600">Agenda citas con las mejores especialistas en uñas, cabello, pestañas y más.</p>
-        </div>
-        
-        <div class="bg-white p-8 rounded-2xl shadow-sm border hover:shadow-xl transition group">
-            <div class="h-12 w-12 bg-blue-100 rounded-full flex items-center justify-center mb-6 group-hover:bg-blue-500 transition">
-                <span class="text-2xl">🎁</span>
+
+            <!-- Recomendaciones -->
+            <div class="bg-gradient-to-r from-brand-primary to-brand-secondary rounded-3xl p-8 text-white mb-12 shadow-xl border border-white/20">
+                <h2 class="text-3xl font-serif font-bold mb-4 drop-shadow-sm">Recomendaciones para ti</h2>
+                <p class="mb-6 font-medium text-lg opacity-90">Basado en tus búsquedas e intereses, aquí hay productos y servicios que podrían interesarte.</p>
+                <a href="/marketplace" class="inline-block bg-white/15 backdrop-blur-sm border border-white/50 text-white px-8 py-3 rounded-full font-bold hover:bg-white/25 hover:shadow-lg hover:scale-105 transition-all duration-300 shadow-md">
+                    Explorar recomendaciones
+                </a>
             </div>
-            <h3 class="text-xl font-bold mb-4">The Wall</h3>
-            <p class="text-gray-600">Publica tus deseos y deja que alguien especial los haga realidad de forma segura.</p>
+
+            <!-- Quick Links -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <a href="/marketplace" class="bg-white dark:bg-valedissed-dark-surface p-6 rounded-2xl shadow-md dark:shadow-none border-l-4 border-brand-primary dark:border-valedissed-dark-border hover:shadow-lg hover:translate-x-1 transition-all duration-300">
+                    <h3 class="text-xl font-serif font-bold mb-2 text-brand-secondary dark:text-gray-100">📱 Ir al Marketplace</h3>
+                    <p class="text-brand-dark/90 dark:text-gray-400 font-medium">Explora productos y servicios disponibles</p>
+                </a>
+                <a href="/profile" class="bg-white dark:bg-valedissed-dark-surface p-6 rounded-2xl shadow-md dark:shadow-none border-l-4 border-brand-secondary dark:border-valedissed-dark-border hover:shadow-lg hover:translate-x-1 transition-all duration-300">
+                    <h3 class="text-xl font-serif font-bold mb-2 text-brand-secondary dark:text-gray-100">⚙️ Mi Perfil</h3>
+                    <p class="text-brand-dark/90 dark:text-gray-400 font-medium">Edita tu información personal</p>
+                </a>
+            </div>
         </div>
     </div>
 </div>
 
-<!-- Sección HTMX de prueba -->
-<div class="mt-20 text-center py-12 bg-gray-100 rounded-3xl max-w-4xl mx-auto border-2 border-dashed border-gray-300">
-    <h4 class="text-lg font-medium text-gray-500 mb-4">Prueba de interactividad HTMX</h4>
-    <button hx-get="/api/v1/health" hx-target="#health-result" class="bg-gray-800 text-white px-6 py-2 rounded-lg hover:bg-black transition">
-        Verificar Estado del Sistema
-    </button>
-    <div id="health-result" class="mt-4 font-mono text-sm text-brand-primary"></div>
+<div id="loading" class="min-h-screen flex items-center justify-center">
+    <div class="text-center">
+        <div class="animate-spin rounded-full h-32 w-32 border-b-2 border-brand-primary"></div>
+        <p class="mt-4 text-gray-600">Cargando tu dashboard...</p>
+    </div>
 </div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', path='js/index.js') }}"></script>
 {% endblock %}

@@ -1,0 +1,110 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Mi Perfil - Valedissed{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="mb-10 text-center">
+        <h1 class="text-4xl font-serif font-bold text-brand-secondary dark:text-valedissed-dark-gold mb-3 drop-shadow-sm">Mi Perfil</h1>
+        <p class="text-brand-dark/80 dark:text-gray-300 font-light">Actualiza tu información personal</p>
+    </div>
+
+    <div class="bg-white/70 dark:bg-valedissed-dark-surface backdrop-blur-md rounded-3xl shadow-sm border border-brand-primary/10 dark:border-valedissed-dark-border overflow-hidden">
+        <div class="p-8">
+            <!-- Zona de Foto de Perfil -->
+            <div class="mb-8 flex flex-col items-center sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-6 pb-8 border-b border-gray-100">
+                <div id="profile-avatar-container" class="relative h-24 w-24 sm:h-32 sm:w-32 flex items-center justify-center overflow-hidden rounded-full">
+                    <!-- SVG por defecto mientras carga -->
+                    <svg class="h-full w-full text-gray-300 animate-pulse drop-shadow-sm" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                </div>
+                <div class="flex-1 text-center sm:text-left">
+                    <h3 class="text-lg font-bold text-brand-dark dark:text-gray-100">Foto de Perfil</h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Se recomiendan formatos JPG o PNG, máximo 5MB.</p>
+                    <div class="flex flex-col sm:flex-row gap-3 items-center sm:items-start justify-center sm:justify-start">
+                        <label class="cursor-pointer inline-flex items-center justify-center px-4 py-2 border border-brand-primary text-sm font-medium rounded-full text-brand-primary dark:text-valedissed-dark-gold dark:border-valedissed-dark-gold bg-transparent hover:bg-brand-primary dark:hover:bg-valedissed-dark-gold hover:text-white transition-colors shadow-sm">
+                            <span>Seleccionar nueva foto</span>
+                            <input id="avatar-input" type="file" accept="image/jpeg, image/png, image/webp, image/heic, image/heif, image/avif" class="hidden">
+                        </label>
+                        <button type="button" id="delete-avatar-btn" class="hidden inline-flex items-center justify-center px-4 py-2 border border-red-500 text-sm font-medium rounded-full text-red-500 bg-transparent hover:bg-red-500 hover:text-white transition-colors shadow-sm">
+                            Eliminar foto
+                        </button>
+                    </div>
+                    <div id="avatar-upload-message" class="mt-2 text-xs hidden"></div>
+                </div>
+            </div>
+
+            <form id="profile-form" class="space-y-6">
+                <!-- Username -->
+                <div>
+                    <label for="username" class="block text-sm font-medium text-brand-dark dark:text-gray-300 mb-1">Nombre de Usuario</label>
+                    <input type="text" name="username" id="username" class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-valedissed-dark-border rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white/50 dark:bg-valedissed-dark-elevated dark:text-white transition-all" required>
+                </div>
+
+                <!-- Full Name -->
+                <div>
+                    <label for="full_name" class="block text-sm font-medium text-brand-dark dark:text-gray-300 mb-1">Nombre Completo</label>
+                    <input type="text" name="full_name" id="full_name" class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-valedissed-dark-border rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white/50 dark:bg-valedissed-dark-elevated dark:text-white transition-all" required>
+                </div>
+
+                <!-- Gender (Dynamic) -->
+                <div>
+                    <label for="gender" class="block text-sm font-medium text-brand-dark dark:text-gray-300 mb-1 flex justify-between">
+                        Género 
+                        <span id="gender-status" class="text-xs text-brand-secondary dark:text-valedissed-dark-gold"></span>
+                    </label>
+                    <select id="gender" name="gender" class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-valedissed-dark-border rounded-xl bg-gray-50 dark:bg-valedissed-dark-elevated text-gray-500 dark:text-white transition-all">
+                        <option value="" disabled selected>No especificado</option>
+                        <option value="female">Mujer</option>
+                        <option value="male">Hombre</option>
+                        <option value="other">Otro</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">Por seguridad, el género no puede ser modificado una vez registrado.</p>
+                </div>
+
+                <!-- Bio -->
+                <div>
+                    <label for="bio" class="block text-sm font-medium text-brand-dark dark:text-gray-300 mb-1">Biografía</label>
+                    <textarea id="bio" name="bio" rows="4" class="appearance-none block w-full px-4 py-3 border border-gray-200 dark:border-valedissed-dark-border rounded-xl placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent bg-white/50 dark:bg-valedissed-dark-elevated dark:text-white transition-all" placeholder="Cuéntanos un poco sobre ti..."></textarea>
+                </div>
+
+                <!-- Mensajes -->
+                <div id="profile-message" class="hidden text-sm rounded-xl p-4"></div>
+
+                <!-- Submit Button -->
+                <div class="pt-4">
+                    <button type="submit" class="w-full flex justify-center py-3 px-4 border border-transparent rounded-full shadow-md text-sm font-bold text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-all duration-300">
+                        Guardar Cambios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="become-partner-section" class="max-w-4xl mx-auto mt-8 px-4 sm:px-6 lg:px-8 pb-12">
+        <div class="bg-gradient-to-r from-brand-primary/10 to-brand-secondary/10 dark:from-brand-primary/5 dark:to-brand-secondary/5 border border-brand-primary/20 dark:border-valedissed-dark-border rounded-3xl p-6 sm:p-8">
+            <div class="flex flex-col sm:flex-row items-center sm:items-start gap-5 text-center sm:text-left">
+                <div class="h-14 w-14 bg-brand-primary/10 dark:bg-valedissed-dark-elevated rounded-2xl flex items-center justify-center flex-shrink-0">
+                    <span class="text-2xl">🏪</span>
+                </div>
+                <div class="flex-1">
+                    <h2 class="text-xl sm:text-2xl font-serif font-bold text-brand-secondary dark:text-valedissed-dark-gold mb-1">¿Deseas profesionalizar tu presencia?</h2>
+                    <p class="text-brand-dark/70 dark:text-gray-400 text-sm mb-5">Obtén tu membresía oficial para empezar a publicar tus servicios o productos en nuestro marketplace exclusivo.</p>
+                    <div class="w-full max-w-xs mx-auto sm:mx-0">
+                        <button id="open-partner-modal-btn" class="btn-vld-primary w-full">
+                            Solicitar Membresía Comercial
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script type="module" src="{{ url_for('static', path='js/profile.js') }}?v=4"></script>
+{% endblock %}

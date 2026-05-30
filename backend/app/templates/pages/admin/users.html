@@ -1,0 +1,87 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Admin - Usuarios - Valedissed{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
+    <div class="mb-10 text-center sm:text-left">
+        <h1 class="text-4xl font-serif font-bold text-brand-secondary dark:text-gray-100 mb-3 drop-shadow-sm">Panel de Administración</h1>
+        <p class="text-brand-dark/80 dark:text-gray-400 font-light">Gestión y monitoreo de usuarios registrados.</p>
+    </div>
+
+    <!-- Error/Mensaje Contenedor -->
+    <div id="admin-message" class="hidden mb-6 p-4 rounded-xl text-sm font-medium"></div>
+
+    <!-- Barra de Filtros -->
+    <div class="bg-white/70 dark:bg-valedissed-dark-surface/90 backdrop-blur-md rounded-2xl shadow-sm border border-brand-primary/10 dark:border-valedissed-dark-border p-5 mb-6">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Búsqueda General -->
+            <div>
+                <label for="filter-search" class="block text-xs font-bold text-brand-dark dark:text-gray-300 uppercase tracking-wider mb-2">Búsqueda</label>
+                <input type="text" id="filter-search" placeholder="Buscar por ID, Usuario o Nombre..." class="w-full px-4 py-2 bg-white dark:bg-valedissed-dark-elevated border border-gray-200 dark:border-valedissed-dark-border dark:text-white rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all placeholder-gray-400 dark:placeholder-gray-500">
+            </div>
+            <!-- Filtro de Rol -->
+            <div>
+                <label for="filter-role" class="block text-xs font-bold text-brand-dark dark:text-gray-300 uppercase tracking-wider mb-2">Rol</label>
+                <select id="filter-role" class="w-full px-4 py-2 border border-gray-200 dark:border-valedissed-dark-border rounded-lg text-sm bg-white dark:bg-valedissed-dark-elevated dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all">
+                    <option value="all">Todos los Roles</option>
+                    <option value="admin">Administrador</option>
+                    <option value="cliente">Cliente</option>
+                </select>
+            </div>
+            <!-- Filtro de Sexo -->
+            <div>
+                <label for="filter-gender" class="block text-xs font-bold text-brand-dark dark:text-gray-300 uppercase tracking-wider mb-2">Sexo</label>
+                <select id="filter-gender" class="w-full px-4 py-2 border border-gray-200 dark:border-valedissed-dark-border rounded-lg text-sm bg-white dark:bg-valedissed-dark-elevated dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all">
+                    <option value="all">Todos</option>
+                    <option value="female">Mujer</option>
+                    <option value="male">Hombre</option>
+                    <option value="other">Otro / No Def.</option>
+                </select>
+            </div>
+            <!-- Filtro de Estado -->
+            <div>
+                <label for="filter-status" class="block text-xs font-bold text-brand-dark dark:text-gray-300 uppercase tracking-wider mb-2">Estado</label>
+                <select id="filter-status" class="w-full px-4 py-2 border border-gray-200 dark:border-valedissed-dark-border rounded-lg text-sm bg-white dark:bg-valedissed-dark-elevated dark:text-white focus:outline-none focus:ring-2 focus:ring-brand-primary/50 transition-all">
+                    <option value="all">Todos los Estados</option>
+                    <option value="active">Activo</option>
+                    <option value="suspended">Suspendido</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabla de Usuarios -->
+    <div class="bg-white/70 dark:bg-valedissed-dark-surface backdrop-blur-md rounded-3xl shadow-sm border border-brand-primary/10 dark:border-valedissed-dark-border overflow-hidden">
+        <div class="overflow-x-auto">
+            <table class="min-w-full divide-y divide-gray-200 dark:divide-valedissed-dark-border">
+                <thead class="bg-gradient-to-r from-brand-soft to-white dark:from-valedissed-dark-elevated dark:to-valedissed-dark-surface">
+                    <tr>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-brand-secondary dark:text-gray-300 uppercase tracking-wider">Usuario</th>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-brand-secondary dark:text-gray-300 uppercase tracking-wider">Información</th>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-brand-secondary dark:text-gray-300 uppercase tracking-wider">Rol</th>
+                        <th scope="col" class="px-6 py-4 text-left text-xs font-bold text-brand-secondary dark:text-gray-300 uppercase tracking-wider">Estado</th>
+                        <th scope="col" class="px-6 py-4 text-right text-xs font-bold text-brand-secondary dark:text-gray-300 uppercase tracking-wider">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body" class="bg-white dark:bg-transparent divide-y divide-gray-100 dark:divide-valedissed-dark-border">
+                    <!-- Las filas se inyectan dinámicamente con JS -->
+                    <tr>
+                        <td colspan="5" class="px-6 py-12 text-center text-gray-500 font-light">
+                            <svg class="animate-spin h-8 w-8 text-brand-primary mx-auto mb-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                            Cargando usuarios...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', path='js/admin_users.js') }}"></script>
+{% endblock %}

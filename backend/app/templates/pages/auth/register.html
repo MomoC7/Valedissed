@@ -1,0 +1,91 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Registro - Valedissed{% endblock %}
+
+{% block content %}
+<script>
+    function checkAuth() {
+        if (localStorage.getItem('access_token')) {
+            window.location.replace('/dashboard');
+        }
+    }
+    checkAuth();
+    window.addEventListener('pageshow', function(event) {
+        if (event.persisted) {
+            checkAuth();
+        }
+    });
+</script>
+<style>
+    body { visibility: hidden; }
+</style>
+<script>
+    if (!localStorage.getItem('access_token')) {
+        document.body.style.visibility = 'visible';
+    }
+</script>
+<div class="relative z-10 min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-md w-full space-y-8">
+        <!-- Card del formulario -->
+        <div class="bg-white/80 dark:bg-valedissed-dark-surface backdrop-blur-xl rounded-3xl shadow-xl dark:shadow-none border border-pink-100/60 dark:border-valedissed-dark-border p-10">
+        <div>
+            <h2 class="mt-2 text-center text-3xl font-serif font-bold text-brand-secondary dark:text-gray-100">
+                Crea tu cuenta
+            </h2>
+            <p class="mt-2 text-center text-sm text-gray-600 dark:text-gray-400">
+                ¿Ya tienes cuenta?
+                <a href="/login" class="font-medium text-brand-primary hover:text-brand-secondary">
+                    Inicia sesión aquí
+                </a>
+            </p>
+        </div>
+        <form class="mt-8 space-y-6" action="#" method="POST" id="register-form">
+            <div class="rounded-xl shadow-sm space-y-3">
+                <div>
+                    <label for="username" class="sr-only">Nombre de usuario</label>
+                    <input id="username" name="username" type="text" required class="appearance-none relative block w-full px-4 py-3 border border-gray-200 dark:border-valedissed-dark-border placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white dark:bg-valedissed-dark-elevated rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent sm:text-sm transition-all" placeholder="Nombre de usuario">
+                </div>
+                <div>
+                    <label for="full_name" class="sr-only">Nombre completo</label>
+                    <input id="full_name" name="full_name" type="text" required class="appearance-none relative block w-full px-4 py-3 border border-gray-200 dark:border-valedissed-dark-border placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white dark:bg-valedissed-dark-elevated rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent sm:text-sm transition-all" placeholder="Nombre completo">
+                </div>
+                <div>
+                    <label for="email" class="sr-only">Correo electrónico</label>
+                    <input id="email" name="email" type="email" autocomplete="email" required class="appearance-none relative block w-full px-4 py-3 border border-gray-200 dark:border-valedissed-dark-border placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white dark:bg-valedissed-dark-elevated rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent sm:text-sm transition-all" placeholder="Correo electrónico">
+                </div>
+                <div>
+                    <label for="gender" class="sr-only">Género</label>
+                    <select id="gender" name="gender" required class="appearance-none relative block w-full px-4 py-3 border border-gray-200 dark:border-valedissed-dark-border text-gray-500 dark:text-gray-300 dark:bg-valedissed-dark-elevated rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent sm:text-sm transition-all">
+                        <option value="">Selecciona tu género</option>
+                        <option value="female">Mujer</option>
+                        <option value="male">Hombre</option>
+                        <option value="other">Otro</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="password" class="sr-only">Contraseña</label>
+                    <input id="password" name="password" type="password" required class="appearance-none relative block w-full px-4 py-3 border border-gray-200 dark:border-valedissed-dark-border placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-white dark:bg-valedissed-dark-elevated rounded-xl focus:outline-none focus:ring-2 focus:ring-brand-primary focus:border-transparent sm:text-sm transition-all" placeholder="Contraseña">
+                </div>
+            </div>
+
+            <div>
+                <button type="submit" class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-full text-white bg-gradient-to-r from-brand-primary to-brand-secondary hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand-primary transition-all shadow-lg shadow-brand-primary/30">
+                    <span class="absolute left-0 inset-y-0 flex items-center pl-4">
+                        <svg class="h-5 w-5 text-white/70" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                            <path fill-rule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clip-rule="evenodd" />
+                        </svg>
+                    </span>
+                    Registrarse
+                </button>
+            </div>
+
+            <div id="register-result" class="text-center text-sm"></div>
+        </form>
+        </div><!-- /card -->
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', path='js/auth.js') }}"></script>
+{% endblock %}

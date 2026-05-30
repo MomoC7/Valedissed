@@ -12,8 +12,10 @@ passlib[bcrypt]
 python-jose[cryptography]
 httpx
 stripe
+supabase
 
 # Testing
 pytest
 pytest-asyncio
 requests
+

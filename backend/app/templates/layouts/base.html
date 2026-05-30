@@ -1,72 +1,795 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Valedissed{% endblock %}</title>
-    
-    <!-- Tailwind CSS (Play CDN para desarrollo inmediato) -->
+
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
+            darkMode: 'class',
             theme: {
                 extend: {
                     colors: {
-                        'brand-primary': '#ff4081',
-                        'brand-secondary': '#7c4dff',
+                        'brand-primary': '#D85C8A',
+                        'brand-secondary': '#8A5C9E',
+                        'brand-gold': '#C99E4A',
+                        'brand-soft': '#FDF7FA',
+                        'brand-dark': '#473142',
+
+                        /* Modo Oscuro Cálido (Espresso/Plum) — fondo original */
+                        'valedissed-dark': {
+                            bg: '#211820',       /* Fondo principal café oscuro (espresso/plum) */
+                            surface: '#2a1f28',  /* Tarjetas */
+                            elevated: '#342631', /* Hover/dropdowns */
+                            border: '#40303d',   /* Bordes */
+                            leather: '#1e1108',  /* Navbar/Footer cuero oscuro */
+                            gold: '#c9a84c',     /* Oro de estampado */
+                            'gold-light': '#e8c97a', /* Oro brillante para hover */
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                        serif: ['Playfair Display', 'ui-serif', 'Georgia', 'serif'],
                     }
                 }
             }
         }
     </script>
-    
-    <!-- Archivo CSS local (se usará en producción) -->
-    <link href="{{ url_for('static', path='css/main.css') }}" rel="stylesheet">
-    
-    <!-- HTMX CDN (Para desarrollo rápido) -->
-    <script src="https://unpkg.com/htmx.org@1.9.10" integrity="sha384-D1Kt99CQMDuVetoL1lrYwg5t+9QdHe7NLX/SoJYkXDFfX37iInKRy5xLSi8nO7UC" crossorigin="anonymous"></script>
-    
-    <!-- Alpine.js (Opcional, pero recomendado para UI interactiva ligera) -->
+    <script>
+            // ====================================================
+            // VALEDISSED — DARK MODE PRIMARIO
+            // El modo oscuro SIEMPRE es la experiencia por defecto.
+            // Solo cambia si el usuario lo alterna manualmente.
+            // Ignora completamente la preferencia del sistema operativo.
+            // ====================================================
+            (function () {
+                var stored = localStorage.getItem('valedissed_theme');
+                // Si el usuario nunca ha alternado manualmente, imponer dark
+                if (!stored) {
+                    localStorage.setItem('valedissed_theme', 'dark');
+                }
+                // Aplicar ANTES del paint (anti-FOUC)
+                if (localStorage.getItem('valedissed_theme') === 'dark') {
+                    document.documentElement.classList.add('dark');
+                } else {
+                    document.documentElement.classList.remove('dark');
+                }
+            })();
+
+        function toggleTheme() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.setItem('valedissed_theme', 'light');
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.setItem('valedissed_theme', 'dark');
+            }
+        }
+    </script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap"
+        rel="stylesheet">
+
+    <!-- Asegúrate de que exista: backend/app/static/css/main.css -->
+    <link href="{{ url_for('static', path='css/main.css') }}?v=3" rel="stylesheet">
+
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    
+
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        var supabaseUrl = '{{ settings.SUPABASE_URL }}';
+        var supabaseKey = '{{ settings.SUPABASE_KEY }}';
+        var supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+    </script>
+
+    <!-- Estilos principales -->
+    <link href="{{ url_for('static', path='css/main.css') }}?v=13" rel="stylesheet">
     {% block extra_head %}{% endblock %}
 </head>
-<body class="bg-gray-50 text-gray-900 font-sans">
-    
-    <!-- Header/Nav -->
-    <nav class="bg-white shadow-sm border-b sticky top-0 z-50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex-shrink-0 flex items-center">
-                    <a href="/" class="text-2xl font-bold text-brand-primary">Valedissed</a>
+
+<body x-data="{ userMenuOpen: false, cartOpen: false }"
+    class="relative bg-gradient-to-br from-[#fcf7fa] to-[#f4e8f5] dark:from-valedissed-dark-bg dark:to-valedissed-dark-surface text-brand-dark dark:text-gray-200 font-sans flex flex-col min-h-screen selection:bg-brand-primary selection:text-white transition-colors duration-300 overflow-x-hidden">
+
+
+
+    <nav id="main-navbar"
+        class="relative dark:bg-valedissed-dark-leather backdrop-blur-2xl border-b dark:border-valedissed-dark-border shadow-[0_2px_20px_rgba(216,92,138,0.12)] dark:shadow-[0_4px_28px_rgba(0,0,0,0.55)] sticky top-0 z-30 transition-all duration-300"
+        x-data="{ mobileMenuOpen: false }"
+        style="background: linear-gradient(135deg, #fce4f0 0%, #f5eeff 50%, #ead4f8 100%);">
+        <!-- Fondo cuero en dark (sobreescribe el inline style via clase dark) -->
+        <div aria-hidden="true" class="pointer-events-none absolute inset-0 hidden dark:block"
+            style="background: #1e1108;"></div>
+        <!-- Textura de cuero en dark: grano irregular de 4px -->
+        <div aria-hidden="true" class="pointer-events-none absolute inset-0 hidden dark:block"
+            style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Crect width='8' height='8' fill='none'/%3E%3Ccircle cx='1.5' cy='1.5' r='0.7' fill='rgba(255,255,255,0.025)'/%3E%3Ccircle cx='5' cy='5' r='0.5' fill='rgba(255,255,255,0.018)'/%3E%3Ccircle cx='7' cy='2' r='0.4' fill='rgba(255,255,255,0.012)'/%3E%3C/svg%3E&quot;); background-repeat: repeat;">
+        </div>
+        <!-- Nueva Textura Premium Diamond Lace en light: Elegante y delicada -->
+        <div aria-hidden="true" class="pointer-events-none absolute inset-0 dark:hidden"
+            style="background-image: var(--texture-light); background-repeat: repeat;"></div>
+        <!-- Canvas de partículas (motor JS, ola sinusoidal orgánica) -->
+        <canvas aria-hidden="true" class="vld-particles pointer-events-none absolute inset-0"
+            style="width:100%;height:100%;z-index:2;"></canvas>
+        <!-- Borde dorado inferior gradiente en dark -->
+        <div aria-hidden="true" class="pointer-events-none absolute bottom-0 left-0 right-0 h-[1.5px] hidden dark:block"
+            style="background: linear-gradient(to right, transparent 0%, rgba(201,168,76,0.2) 20%, rgba(232,201,122,0.65) 50%, rgba(201,168,76,0.2) 80%, transparent 100%);">
+        </div>
+        <!-- Borde malva inferior gradiente en light -->
+        <div aria-hidden="true" class="pointer-events-none absolute bottom-0 left-0 right-0 h-[1.5px] dark:hidden"
+            style="background: linear-gradient(to right, transparent 0%, rgba(216,92,138,0.3) 20%, rgba(138,92,158,0.55) 50%, rgba(216,92,138,0.3) 80%, transparent 100%);">
+        </div>
+        <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <!-- Mobile menu button -->
+                <div class="flex items-center sm:hidden mr-0.5">
+                    <button @click="mobileMenuOpen = !mobileMenuOpen"
+                        class="inline-flex items-center justify-center h-10 w-10 p-2 rounded-xl text-gray-500 hover:text-brand-primary hover:bg-brand-soft/50 dark:text-gray-400 dark:hover:text-brand-primary dark:hover:bg-gray-800 transition-all duration-300 focus:outline-none">
+                        <span class="sr-only">Open main menu</span>
+                        <!-- Icono hamburguesa asimétrico (elegante) -->
+                        <svg x-show="!mobileMenuOpen" class="block h-6 w-6" xmlns="http://www.w3.org/2000/svg"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M4 6h16M8 12h12M4 18h16" />
+                        </svg>
+                        <!-- Icono cerrar -->
+                        <svg x-show="mobileMenuOpen" style="display: none;" class="h-6 w-6 text-brand-primary"
+                            xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"
+                            aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
-                <div class="hidden sm:flex space-x-8">
-                    <a href="/" class="text-gray-600 hover:text-brand-primary px-3 py-2 text-sm font-medium">Home</a>
-                    <a href="/explore" class="text-gray-600 hover:text-brand-primary px-3 py-2 text-sm font-medium">Explorar</a>
-                    <a href="/wall" class="text-gray-600 hover:text-brand-primary px-3 py-2 text-sm font-medium">The Wall</a>
+
+                <!-- Logo -->
+                <div class="flex-shrink-0 flex items-center flex-1 sm:flex-initial justify-center sm:justify-start">
+                        <a href="/"
+                        class="text-2xl sm:text-4xl font-serif font-extrabold nav-valedissed-animated transition-all duration-300">
+                        Valedissed
+                    </a>
                 </div>
-                <div class="flex items-center space-x-4">
-                    <a href="/login" class="text-sm font-medium text-gray-700 hover:text-brand-primary">Entrar</a>
-                    <a href="/register" class="bg-brand-primary text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-opacity-90 transition">Registro</a>
+
+                <!-- Center Links -->
+                <div class="hidden sm:flex items-center space-x-1">
+                    <a href="/" id="nav-home-link" class="nav-link-vld">Home</a>
+                    <a href="/marketplace" class="nav-link-vld">Marketplace</a>
+                    <a href="/wall" class="nav-link-vld">The Wall</a>
                 </div>
+
+                <!-- Right Side (Cart & User Menu) -->
+                <div class="flex items-center space-x-1.5 sm:space-x-4">
+                    <!-- Notifications Button (Bell Icon) -->
+                    <div class="relative">
+                        <button id="nav-notif-toggle" class="relative p-1.5 sm:p-2 text-gray-500 hover:text-brand-primary dark:text-gray-400 dark:hover:text-valedissed-dark-gold transition-colors focus:outline-none rounded-lg" title="Notificaciones">
+                            <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                            <span id="nav-notif-badge" class="hidden absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-[9px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-brand-primary rounded-full">
+                                <span>0</span>
+                            </span>
+                        </button>
+                        
+                        <!-- Notifications Dropdown Panel -->
+                        <div id="nav-notif-container" class="hidden absolute right-0 mt-2 w-80 bg-white dark:bg-valedissed-dark-surface rounded-2xl shadow-2xl border border-gray-100 dark:border-valedissed-dark-border z-50 max-h-96 overflow-hidden flex flex-col">
+                            <div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 dark:border-valedissed-dark-border bg-gray-50 dark:bg-valedissed-dark-elevated">
+                                <h3 class="text-sm font-bold text-brand-dark dark:text-white">Notificaciones</h3>
+                                <button onclick="document.getElementById('nav-notif-container').classList.add('hidden')" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
+                            <div id="nav-notif-list" class="overflow-y-auto flex-1">
+                                <!-- Notificaciones inyectadas aquí -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Cart Button -->
+                    <button @click="cartOpen = true; loadCart()" class="relative p-1.5 sm:p-2 text-gray-500 hover:text-brand-primary dark:text-gray-400 dark:hover:text-valedissed-dark-gold transition-colors focus:outline-none rounded-lg hover:bg-white/20 dark:hover:bg-white/10">
+                        <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                        <span id="nav-cart-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-brand-primary rounded-full hidden">0</span>
+                    </button>
+
+                    <div class="relative">
+                        <!-- Dropdown Button Minimalista y Elegante -->
+                        <button @click="userMenuOpen = true"
+                            class="flex items-center space-x-1 sm:space-x-2 bg-transparent hover:bg-brand-soft/50 dark:hover:bg-valedissed-dark-elevated rounded-full p-1 sm:p-1.5 pr-2 sm:pr-3 transition-colors duration-300 focus:outline-none ring-1 ring-transparent hover:ring-brand-primary/20 dark:hover:ring-valedissed-dark-gold/20">
+                            <div id="nav-user-avatar"
+                                class="h-8 w-8 sm:h-10 sm:w-10 flex items-center justify-center rounded-full overflow-hidden bg-gray-50 dark:bg-valedissed-dark-elevated shadow border border-brand-primary/10 dark:border-valedissed-dark-gold/20">
+                                <!-- SVG del avatar se inyecta aquí -->
+                            </div>
+                            <div class="hidden sm:flex items-center space-x-1">
+                                <span id="nav-user-name"
+                                    class="text-sm font-semibold tracking-wider text-gray-700 dark:text-valedissed-dark-gold uppercase"
+                                    style="letter-spacing: 0.06em;">Invitado</span>
+                                <svg class="h-3.5 w-3.5 text-brand-primary/60 dark:text-valedissed-dark-gold/50"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+                                </svg>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mobile Menu -->
+        <div x-show="mobileMenuOpen" x-transition:enter="transition ease-out duration-200"
+            x-transition:enter-start="opacity-0 -translate-y-4" x-transition:enter-end="opacity-100 translate-y-0"
+            x-transition:leave="transition ease-in duration-150" x-transition:leave-start="opacity-100 translate-y-0"
+            x-transition:leave-end="opacity-0 -translate-y-4"
+            class="sm:hidden absolute w-full left-0 top-20 border-t border-brand-primary/10 dark:border-valedissed-dark-border shadow-2xl"
+            style="display: none;">
+            <div class="px-4 pt-4 pb-6 space-y-2 dark:bg-valedissed-dark-surface/95 backdrop-blur-xl rounded-b-3xl"
+                style="background: rgba(250, 228, 245, 0.97);">
+                <a href="/"
+                    class="block px-4 py-3.5 text-base font-semibold text-brand-dark dark:text-gray-200 hover:text-brand-primary dark:hover:text-brand-primary hover:bg-white/40 dark:hover:bg-valedissed-dark-elevated rounded-xl transition-all duration-200 hover:translate-x-1">🏠
+                    Home</a>
+                <a href="/marketplace"
+                    class="block px-4 py-3.5 text-base font-semibold text-brand-dark dark:text-gray-200 hover:text-brand-primary dark:hover:text-brand-primary hover:bg-white/40 dark:hover:bg-valedissed-dark-elevated rounded-xl transition-all duration-200 hover:translate-x-1">🛍️
+                    Marketplace</a>
+                <a href="/wall"
+                    class="block px-4 py-3.5 text-base font-semibold text-brand-dark dark:text-gray-200 hover:text-brand-primary dark:hover:text-brand-primary hover:bg-white/40 dark:hover:bg-valedissed-dark-elevated rounded-xl transition-all duration-200 hover:translate-x-1">✨
+                    The Wall</a>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main>
-        <div class="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
+    <!-- Drawer Moved Outside Nav to Fix Backdrop Blur Stacking Issue -->
+    <!-- Backdrop / Overlay Oscuro -->
+    <div x-show="userMenuOpen" x-transition:enter="transition-opacity ease-linear duration-300"
+        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+        @click="userMenuOpen = false" style="display: none;"></div>
+
+    <!-- Slide-over Drawer Menu -->
+    <div x-show="userMenuOpen" x-transition:enter="transform transition ease-in-out duration-500 sm:duration-700"
+        x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+        x-transition:leave="transform transition ease-in-out duration-500 sm:duration-700"
+        x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
+        class="drawer-body-bg fixed inset-y-0 right-0 z-50 w-full max-w-sm shadow-2xl border-l border-pink-200/40 dark:border-valedissed-dark-border flex flex-col overflow-y-auto"
+        style="display: none;">
+
+        <!-- Header del Drawer — hereda el estilo del navbar -->
+        <div class="relative flex-shrink-0 px-6 py-4 flex items-center justify-between border-b border-pink-200/40 dark:border-valedissed-dark-border overflow-hidden"
+            style="background: linear-gradient(135deg, #fce4f0 0%, #ead4f8 100%);">
+            <!-- Fondo cuero en dark -->
+            <div aria-hidden="true" class="pointer-events-none absolute inset-0 hidden dark:block"
+                style="background: #1e1108;"></div>
+            <div aria-hidden="true" class="pointer-events-none absolute inset-0 hidden dark:block"
+                style="background-image: url(&quot;data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='8' height='8'%3E%3Crect width='8' height='8' fill='none'/%3E%3Ccircle cx='1.5' cy='1.5' r='0.7' fill='rgba(255,255,255,0.025)'/%3E%3Ccircle cx='5' cy='5' r='0.5' fill='rgba(255,255,255,0.018)'/%3E%3Ccircle cx='7' cy='2' r='0.4' fill='rgba(255,255,255,0.012)'/%3E%3C/svg%3E&quot;); background-repeat: repeat;">
+            </div>
+            <!-- Textura Premium Diamond Lace en light para el drawer -->
+            <div aria-hidden="true" class="pointer-events-none absolute inset-0 dark:hidden"
+                style="background-image: var(--texture-light); background-repeat: repeat;"></div>
+
+            <!-- Canvas partículas drawer header -->
+            <canvas aria-hidden="true" class="vld-particles pointer-events-none absolute inset-0"
+                style="width:100%;height:100%;z-index:2;"></canvas>
+            <!-- Borde inferior del header -->
+            <div aria-hidden="true" class="pointer-events-none absolute bottom-0 left-0 right-0 h-px hidden dark:block"
+                style="background: linear-gradient(to right, transparent, rgba(201,168,76,0.5) 50%, transparent);">
+            </div>
+            <h2 class="relative z-10 text-xl font-bold font-serif nav-valedissed-animated tracking-wide">Menú de Usuario
+            </h2>
+            <button @click="userMenuOpen = false"
+                class="relative z-10 rounded-full p-2 text-brand-dark/60 dark:text-valedissed-dark-gold/70 hover:text-brand-primary dark:hover:text-valedissed-dark-gold hover:bg-white/30 dark:hover:bg-valedissed-dark-elevated transition-all duration-200 focus:outline-none">
+                <span class="sr-only">Cerrar menú</span>
+                <svg class="h-6 w-6" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        <div class="flex-1 flex flex-col pt-6 pb-8 px-6 overflow-y-auto">
+            <!-- Unauthenticated Links -->
+            <div id="nav-menu-guest" class="flex flex-col gap-3">
+                <a href="/login"
+                    class="flex items-center justify-center px-6 py-4 rounded-2xl bg-brand-primary text-white font-bold hover:bg-opacity-90 shadow-lg shadow-brand-primary/30 transition-all duration-300 hover:-translate-y-1">Iniciar
+                    Sesión</a>
+                <a href="/register"
+                    class="flex items-center justify-center px-6 py-4 rounded-2xl bg-brand-soft dark:bg-valedissed-dark-elevated text-brand-primary font-bold hover:bg-brand-soft/80 dark:hover:bg-valedissed-dark-elevated/80 transition-all duration-300">Registrarse</a>
+
+                <!-- Separador -->
+                <div
+                    class="h-px w-full bg-gradient-to-r from-transparent via-gray-200 dark:via-valedissed-dark-border to-transparent my-2">
+                </div>
+
+                <!-- Toggle de Modo Oscuro para Visitante -->
+                <button onclick="toggleTheme()"
+                    class="flex items-center justify-between w-full px-5 py-4 rounded-2xl text-gray-700 dark:text-gray-200 hover:bg-brand-soft/80 dark:hover:bg-valedissed-dark-elevated transition-all duration-300 font-medium group">
+                    <div class="flex items-center">
+                        <span class="text-xl mr-4 group-hover:scale-110 transition-transform">🌙</span>
+                        <span>Modo Oscuro</span>
+                    </div>
+                    <!-- Interruptor visual: OFF en claro, ON en oscuro -->
+                    <div
+                        class="relative w-11 h-6 rounded-full transition-colors duration-300 bg-gray-200 dark:bg-valedissed-dark-gold flex-shrink-0">
+                        <div
+                            class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300 dark:translate-x-5">
+                        </div>
+                    </div>
+                </button>
+            </div>
+
+            <!-- Authenticated Links -->
+            <div id="nav-menu-auth" class="flex flex-col h-full hidden">
+                <!-- Cabecera del menú (Avatar super grande y nombre) -->
+                <div class="flex flex-col items-center justify-center mb-8">
+                    <div class="relative group">
+                        <div
+                            class="absolute -inset-1 bg-gradient-to-r from-brand-primary to-brand-secondary rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200">
+                        </div>
+                        <div id="nav-menu-large-avatar"
+                            class="relative h-28 w-28 flex items-center justify-center rounded-full overflow-hidden bg-white dark:bg-gray-800 shadow-xl border-4 border-white dark:border-gray-900 z-10">
+                            <!-- Se inyecta avatar ampliado -->
+                        </div>
+                    </div>
+                    <span id="nav-menu-large-name" class="mt-5 text-2xl font-bold tracking-wide">Cargando...</span>
+                </div>
+
+                <div class="flex flex-col gap-2">
+                    <a href="/dashboard" @click="userMenuOpen = false"
+                        class="flex items-center px-5 py-4 rounded-2xl text-gray-700 dark:text-gray-200 hover:bg-brand-soft/80 dark:hover:bg-valedissed-dark-elevated hover:text-brand-primary transition-all duration-300 font-medium group">
+                        <span class="text-xl mr-4 group-hover:scale-110 transition-transform">📊</span> Mi Panel
+                    </a>
+                    <a href="/profile" @click="userMenuOpen = false"
+                        class="flex items-center px-5 py-4 rounded-2xl text-gray-700 dark:text-gray-200 hover:bg-brand-soft/80 dark:hover:bg-valedissed-dark-elevated hover:text-brand-primary transition-all duration-300 font-medium group">
+                        <span class="text-xl mr-4 group-hover:scale-110 transition-transform">👤</span> Mi Perfil
+                    </a>
+                    <a id="nav-menu-admin-link" href="/admin" @click="userMenuOpen = false"
+                        class="hidden flex items-center px-5 py-4 rounded-2xl text-gray-700 dark:text-gray-200 hover:bg-brand-soft/80 dark:hover:bg-valedissed-dark-elevated hover:text-brand-primary transition-all duration-300 font-medium group">
+                        <span class="text-xl mr-4 group-hover:scale-110 transition-transform">👑</span> Panel Admin
+                    </a>
+                    
+                    <!-- Enlaces de Partner (Inyectados via JS) -->
+                    <div id="nav-menu-partner-links" class="hidden flex-col gap-2 mt-2 pt-2 border-t border-gray-100 dark:border-valedissed-dark-border">
+                        <span class="px-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Gestión Partner</span>
+                        <a href="/seller/products" @click="userMenuOpen = false"
+                            class="flex items-center px-5 py-3 rounded-2xl text-gray-700 dark:text-gray-200 hover:bg-brand-soft/80 dark:hover:bg-valedissed-dark-elevated hover:text-brand-primary transition-all duration-300 font-medium group">
+                            <span class="text-xl mr-4 group-hover:scale-110 transition-transform">🛍️</span> Mis Productos
+                        </a>
+                        <a href="/seller/services" @click="userMenuOpen = false"
+                            class="flex items-center px-5 py-3 rounded-2xl text-gray-700 dark:text-gray-200 hover:bg-brand-soft/80 dark:hover:bg-valedissed-dark-elevated hover:text-brand-primary transition-all duration-300 font-medium group">
+                            <span class="text-xl mr-4 group-hover:scale-110 transition-transform">✂️</span> Mis Servicios
+                        </a>
+                    </div>
+                    
+                    <!-- Banner Convertirse en Partner (Inyectado via JS) -->
+                    <div id="nav-menu-become-partner" class="hidden mt-2 bg-gradient-to-br from-brand-primary/10 to-brand-secondary/10 dark:from-brand-primary/20 dark:to-brand-secondary/20 rounded-2xl p-5 border border-brand-primary/20 dark:border-valedissed-dark-gold/30 relative overflow-hidden group">
+                        <!-- Partículas / Brillo interno -->
+                        <div class="absolute -inset-full bg-gradient-to-r from-transparent via-white/40 dark:via-white/10 to-transparent -rotate-45 group-hover:animate-[shimmer_1.5s_infinite]"></div>
+                        
+                        <div class="relative z-10 flex items-center gap-3 mb-2">
+                            <span class="text-2xl drop-shadow-sm">🌟</span>
+                            <h4 class="font-bold text-brand-secondary dark:text-valedissed-dark-gold leading-tight text-base">¿Tienes un negocio?</h4>
+                        </div>
+                        <p class="relative z-10 text-xs text-brand-dark/80 dark:text-gray-300 mb-4 font-medium">Vende productos u ofrece servicios de belleza a miles de clientes.</p>
+                        <a href="/profile#become-partner-section" @click="userMenuOpen = false" class="relative z-10 block w-full text-center py-2.5 bg-white dark:bg-valedissed-dark-surface rounded-xl text-brand-primary dark:text-valedissed-dark-gold font-bold text-sm shadow-md hover:shadow-lg transition-all hover:-translate-y-0.5 border border-transparent dark:border-valedissed-dark-border">
+                            Convertirme en Partner
+                        </a>
+                    </div>
+                </div>
+
+                <div class="mt-auto pt-8 flex flex-col gap-2">
+                    <div
+                        class="h-px w-full bg-gradient-to-r from-transparent via-gray-200 dark:via-valedissed-dark-border to-transparent mb-4">
+                    </div>
+
+                    <!-- Toggle Modo Oscuro con interruptor visual -->
+                    <button onclick="toggleTheme()"
+                        class="flex items-center justify-between px-5 py-4 rounded-2xl text-gray-700 dark:text-gray-200 hover:bg-brand-soft/80 dark:hover:bg-valedissed-dark-elevated transition-all duration-300 font-medium group">
+                        <div class="flex items-center">
+                            <span class="text-xl mr-4 group-hover:scale-110 transition-transform">🌙</span>
+                            <span>Modo Oscuro</span>
+                        </div>
+                        <!-- Interruptor visual: OFF en claro, ON en oscuro -->
+                        <div
+                            class="relative w-11 h-6 rounded-full transition-colors duration-300 bg-gray-200 dark:bg-valedissed-dark-gold flex-shrink-0">
+                            <div
+                                class="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform duration-300 dark:translate-x-5">
+                            </div>
+                        </div>
+                    </button>
+
+                    <button id="nav-logout-btn"
+                        class="mt-4 flex items-center justify-center px-5 py-4 rounded-2xl text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 border border-transparent hover:border-red-100 dark:hover:border-red-900/50 transition-all duration-300 font-bold group">
+                        <span class="mr-2 group-hover:-translate-x-1 transition-transform">👋</span> Cerrar Sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         DRAWER DEL CARRITO
+         ========================================== -->
+    <div x-show="cartOpen" x-transition:enter="transition-opacity ease-linear duration-300"
+        x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+        x-transition:leave="transition-opacity ease-linear duration-300" x-transition:leave-start="opacity-100"
+        x-transition:leave-end="opacity-0" class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40"
+        @click="cartOpen = false" style="display: none;"></div>
+
+    <div x-show="cartOpen" x-transition:enter="transform transition ease-in-out duration-500 sm:duration-700"
+        x-transition:enter-start="translate-x-full" x-transition:enter-end="translate-x-0"
+        x-transition:leave="transform transition ease-in-out duration-500 sm:duration-700"
+        x-transition:leave-start="translate-x-0" x-transition:leave-end="translate-x-full"
+        class="drawer-body-bg fixed inset-y-0 right-0 z-50 w-full max-w-md shadow-2xl border-l border-pink-200/40 dark:border-valedissed-dark-border flex flex-col"
+        style="display: none;">
+
+        <!-- Header del Carrito -->
+        <div class="relative flex-shrink-0 px-6 py-4 flex items-center justify-between border-b border-pink-200/40 dark:border-valedissed-dark-border"
+            style="background: linear-gradient(135deg, #fce4f0 0%, #ead4f8 100%);">
+            <div aria-hidden="true" class="pointer-events-none absolute inset-0 hidden dark:block" style="background: #1e1108;"></div>
+            <h2 class="relative z-10 text-xl font-bold font-serif nav-valedissed-animated tracking-wide flex items-center gap-2">
+                🛒 Mi Carrito <span id="cart-drawer-count" class="text-sm bg-white/20 px-2 py-0.5 rounded-full">0</span>
+            </h2>
+            <button @click="cartOpen = false" class="relative z-10 rounded-full p-2 text-brand-dark/60 dark:text-valedissed-dark-gold/70 hover:text-brand-primary dark:hover:text-valedissed-dark-gold transition-colors">
+                <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+
+        <!-- Body del Carrito -->
+        <div class="flex-1 flex flex-col overflow-y-auto px-4 py-6" id="cart-drawer-items">
+            <!-- Loader inicial -->
+            <div id="cart-loader" class="flex justify-center items-center h-full">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-primary"></div>
+            </div>
+            <!-- Lista de items inyectada por JS -->
+            <div id="cart-items-list" class="hidden flex flex-col gap-4"></div>
+            <!-- Estado vacío -->
+            <div id="cart-empty-state" class="hidden flex flex-col items-center justify-center h-full text-center opacity-70">
+                <span class="text-5xl mb-4">🛒</span>
+                <p class="font-bold text-lg dark:text-white">Tu carrito está vacío</p>
+                <p class="text-sm dark:text-gray-400 mt-1">Explora el marketplace para encontrar productos increíbles.</p>
+                <button @click="cartOpen = false; window.location.href='/marketplace'" class="mt-6 btn-vld-secondary text-sm">Ir al Marketplace</button>
+            </div>
+        </div>
+
+        <!-- Footer del Carrito (Total y Checkout) -->
+        <div id="cart-drawer-footer" class="hidden flex-shrink-0 border-t border-pink-200/40 dark:border-valedissed-dark-border p-6 bg-white/50 dark:bg-valedissed-dark-surface/50 backdrop-blur-md">
+            <div class="flex justify-between items-end mb-4">
+                <span class="font-medium text-gray-500 dark:text-gray-400">Total a pagar:</span>
+                <span id="cart-total-price" class="text-2xl font-bold text-brand-primary">$0.00</span>
+            </div>
+            <button class="w-full btn-vld-primary text-sm shadow-lg">
+                Proceder al Checkout
+            </button>
+        </div>
+    </div>
+
+    <main class="relative z-10 flex-grow">
+        <!-- Contenedor general para vistas -->
+        <div class="w-full">
             {% block content %}{% endblock %}
         </div>
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t mt-auto py-12">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-gray-500 text-sm">
-            <p>&copy; 2026 Valedissed. Hecho con ❤️ para Medellín.</p>
+    <footer
+        class="relative z-10 bg-white/70 dark:bg-valedissed-dark-leather/90 backdrop-blur-md border-t border-pink-100/60 dark:border-valedissed-dark-border py-12 mt-auto">
+        <div
+            class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center text-center md:text-left text-gray-500 dark:text-valedissed-dark-gold/70 text-sm">
+            <p>&copy; 2026 <span class="flat-valedissed-animated font-extrabold pb-1">Valedissed</span>. Hecho con ❤️
+                desde Medellín para el mundo.</p>
+            <div class="flex space-x-6 mt-4 md:mt-0">
+                <a href="#"
+                    class="hover:text-brand-primary dark:hover:text-valedissed-dark-gold transition-colors">Términos</a>
+                <a href="#"
+                    class="hover:text-brand-primary dark:hover:text-valedissed-dark-gold transition-colors">Privacidad</a>
+            </div>
         </div>
     </footer>
 
     {% block extra_scripts %}{% endblock %}
+    <!-- Scripts de la aplicación -->
+    <script src="{{ url_for('static', path='js/core.js') }}?v=1"></script>
+    <script src="{{ url_for('static', path='js/ui-utils.js') }}?v=1"></script>
+    <script src="{{ url_for('static', path='js/notifications.js') }}?v=1"></script>
+    <script src="{{ url_for('static', path='js/navbar.js') }}?v=9"></script>
+    <script src="{{ url_for('static', path='js/navbar-particles.js') }}?v=4"></script>
+    <script src="{{ url_for('static', path='js/cart.js') }}?v=1"></script>
+
+    <!-- Sparkles cursor-following: aparecen sobre cualquier elemento interactivo -->
+    <script>
+        (function () {
+            var lastSparkle = 0;
+            var colors = [
+                'rgba(201,168,76,0.92)',   /* dorado */
+                'rgba(216,92,138,0.85)',   /* rosa marca */
+                'rgba(232,201,122,0.88)', /* dorado claro */
+                'rgba(138,92,158,0.80)',  /* malva */
+                'rgba(255,220,100,0.90)', /* aúmbar */
+            ];
+
+            function createSparkle(x, y) {
+                // Magnate Rule: Luxury is discovered, not gifted. 50% less sparkles.
+                if (Math.random() > 0.4) return;
+
+                var color = colors[Math.floor(Math.random() * colors.length)];
+                var size = 4 + Math.random() * 5; /* 4-9px */
+                var el = document.createElement('div');
+                el.style.cssText = [
+                    'position:fixed',
+                    'top:' + y + 'px',
+                    'left:' + x + 'px',
+                    'width:' + size + 'px',
+                    'height:' + size + 'px',
+                    'border-radius:50%',
+                    'background:radial-gradient(circle,' + color + ' 0%,transparent 70%)',
+                    'pointer-events:none',
+                    'z-index:99999',
+                    'animation:sparkle-pop 420ms ease-out forwards',
+                ].join(';');
+                document.body.appendChild(el);
+                setTimeout(function () { el.remove(); }, 430);
+            }
+
+            document.addEventListener('mousemove', function (e) {
+                var now = Date.now();
+                if (now - lastSparkle < 65) return; /* ~15 por segundo máx */
+
+                /* Detectar si el elemento (o cualquier ancestro cercano) tiene cursor pointer */
+                var t = e.target;
+                var hasCursor = false;
+                var el = t;
+                for (var i = 0; i < 4; i++) {
+                    if (!el || el === document.body) break;
+                    if (window.getComputedStyle(el).cursor === 'pointer') { hasCursor = true; break; }
+                    el = el.parentElement;
+                }
+                if (!hasCursor) return;
+
+                lastSparkle = now;
+                createSparkle(e.clientX, e.clientY);
+            });
+        })();
+    </script>
+    <!-- ============================================================
+         MODAL: FORMULARIO DE PARTNER (REDiseño Elegante Full-Page)
+         ============================================================ -->
+    <div id="partner-modal" class="hidden fixed inset-0 z-[999999] flex items-center justify-center">
+        <!-- Backdrop con desenfoque de fondo ultra elegante y translúcido (con estilo inline para evitar cache del CSS) -->
+        <div id="partner-modal-backdrop" class="absolute inset-0" style="background: rgba(33, 24, 32, 0.85) !important; backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important;"></div>
+
+        <!-- Contenedor del modal -->
+        <div class="relative w-full h-full sm:h-[85vh] sm:max-h-[85vh] sm:max-w-3xl bg-white dark:bg-valedissed-dark-surface sm:rounded-3xl shadow-2xl border-t sm:border border-pink-100/20 dark:border-valedissed-dark-border overflow-hidden flex flex-col transition-all duration-500 z-10">
+            
+            <!-- Header Flotante -->
+            <div class="flex-shrink-0 px-8 py-6 flex items-center justify-between border-b border-gray-100 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-surface sticky top-0 z-20">
+                <div>
+                    <h3 class="text-2xl font-serif font-bold text-brand-secondary dark:text-valedissed-dark-gold">Registro de Socio</h3>
+                    <p class="text-xs text-gray-400 uppercase tracking-widest mt-1">Valedissed Partner Program</p>
+                </div>
+                <button id="close-partner-modal-btn" class="rounded-full p-2.5 text-gray-400 hover:text-brand-primary hover:bg-pink-50 dark:hover:bg-valedissed-dark-elevated transition-all">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+
+            <!-- Formulario con scroll -->
+            <div class="flex-1 overflow-y-auto px-8 py-10 min-h-0">
+                <form id="partner-form" class="max-w-2xl mx-auto space-y-10">
+                    
+                    <!-- ENVOLTURA PASOS 1 A 4 -->
+                    <div id="partner-form-steps-wrapper" class="space-y-10">
+                        <!-- Paso 1: Tipo de Negocio -->
+                        <div class="space-y-4">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-sm">1</span>
+                                <h4 class="text-lg font-bold dark:text-white">Define tu modelo de negocio</h4>
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <label class="relative cursor-pointer group">
+                                    <input type="radio" name="partner_type" value="vendedor" class="peer sr-only" required>
+                                    <div class="p-4 rounded-2xl border-2 border-gray-100 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-elevated peer-checked:border-brand-primary peer-checked:bg-brand-primary/5 transition-all flex flex-col items-center text-center gap-2 group-hover:shadow-md">
+                                        <span class="text-3xl">💄</span>
+                                        <span class="font-bold text-sm dark:text-gray-200">Vendedor</span>
+                                        <span class="text-[10px] text-gray-500 uppercase">Productos</span>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer group">
+                                    <input type="radio" name="partner_type" value="especialista" class="peer sr-only">
+                                    <div class="p-4 rounded-2xl border-2 border-gray-100 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-elevated peer-checked:border-brand-secondary peer-checked:bg-brand-secondary/5 transition-all flex flex-col items-center text-center gap-2 group-hover:shadow-md">
+                                        <span class="text-3xl">✂️</span>
+                                        <span class="font-bold text-sm dark:text-gray-200">Especialista</span>
+                                        <span class="text-[10px] text-gray-500 uppercase">Servicios</span>
+                                    </div>
+                                </label>
+                                <label class="relative cursor-pointer group">
+                                    <input type="radio" name="partner_type" value="hibrido" class="peer sr-only">
+                                    <div class="p-4 rounded-2xl border-2 border-gray-100 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-elevated peer-checked:border-brand-gold peer-checked:bg-brand-gold/5 transition-all flex flex-col items-center text-center gap-2 group-hover:shadow-md">
+                                        <span class="text-3xl">🌟</span>
+                                        <span class="font-bold text-sm dark:text-gray-200">Híbrido</span>
+                                        <span class="text-[10px] text-gray-500 uppercase">Ambos</span>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Paso 2: Información Básica -->
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-sm">2</span>
+                                <h4 class="text-lg font-bold dark:text-white">Identidad de tu marca</h4>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                <div class="sm:col-span-2">
+                                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Nombre Comercial</label>
+                                    <input type="text" id="business_name" required placeholder="Ej: Studio Glam by María"
+                                        class="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-valedissed-dark-border bg-gray-50/50 dark:bg-valedissed-dark-elevated dark:text-white focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all">
+                                    <span id="error-business_name" class="hidden text-xs text-red-500 mt-1 font-medium"></span>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">WhatsApp / Teléfono</label>
+                                    <input type="tel" id="partner_phone" required placeholder="Ej: 3001234567"
+                                        class="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-valedissed-dark-border bg-gray-50/50 dark:bg-valedissed-dark-elevated dark:text-white focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all">
+                                    <span id="error-partner_phone" class="hidden text-xs text-red-500 mt-1 font-medium"></span>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Ciudad / Zona</label>
+                                    <input type="text" id="operation_zone" required placeholder="Ej: Medellín"
+                                        class="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-valedissed-dark-border bg-gray-50/50 dark:bg-valedissed-dark-elevated dark:text-white focus:ring-2 focus:ring-brand-primary focus:border-transparent outline-none transition-all">
+                                    <span id="error-operation_zone" class="hidden text-xs text-red-500 mt-1 font-medium"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Paso 3: Categorías Dinámicas -->
+                        <div class="space-y-8">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-sm">3</span>
+                                <h4 class="text-lg font-bold dark:text-white">Especialidades</h4>
+                            </div>
+
+                            <!-- Sección Productos -->
+                            <div id="partner-product-section" class="hidden space-y-4 animate-fadeIn">
+                                <label class="block text-xs font-bold text-brand-primary uppercase tracking-widest">¿Qué productos vendes? (Selecciona varios)</label>
+                                <div id="product-category-chips" class="flex flex-wrap gap-2">
+                                    <!-- Chips inyectados por JS -->
+                                </div>
+                                <input type="hidden" id="partner_product_categories">
+                            </div>
+
+                            <!-- Sección Servicios -->
+                            <div id="partner-service-section" class="hidden space-y-4 animate-fadeIn">
+                                <label class="block text-xs font-bold text-brand-secondary uppercase tracking-widest">¿Qué servicios ofreces? (Selecciona varios)</label>
+                                <div id="service-category-chips" class="flex flex-wrap gap-2">
+                                    <!-- Chips inyectados por JS -->
+                                </div>
+                                <input type="hidden" id="partner_service_categories">
+                            </div>
+                            <span id="error-categories" class="hidden text-xs text-red-500 mt-1 font-medium"></span>
+                        </div>
+
+                        <!-- Paso 4: Experiencia y Bio -->
+                        <div class="space-y-6">
+                            <div class="flex items-center gap-3 mb-2">
+                                <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-primary/10 text-brand-primary font-bold text-sm">4</span>
+                                <h4 class="text-lg font-bold dark:text-white">Tu Trayectoria</h4>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Años de Experiencia</label>
+                                <select id="years_experience" required class="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-valedissed-dark-border bg-gray-50/50 dark:bg-valedissed-dark-elevated dark:text-white outline-none">
+                                    <option value="0">Menos de 1 año</option>
+                                    <option value="2">2 a 5 años</option>
+                                    <option value="6">Más de 5 años</option>
+                                    <option value="10">Más de 10 años</option>
+                                </select>
+                            </div>
+
+                            <div>
+                                <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Biografía Profesional <span id="bio-counter" class="normal-case font-normal ml-2"></span></label>
+                                <textarea id="partner_bio" rows="4" required minlength="50" placeholder="Describe tu talento, técnicas y lo que te apasiona..."
+                                    class="w-full px-5 py-4 rounded-2xl border border-gray-200 dark:border-valedissed-dark-border bg-gray-50/50 dark:bg-valedissed-dark-elevated dark:text-white focus:ring-2 focus:ring-brand-primary outline-none transition-all"></textarea>
+                                <span id="error-partner_bio" class="hidden text-xs text-red-500 mt-1 font-medium"></span>
+                            </div>
+                        </div>
+
+                        <!-- Botón para avanzar al paso 5 -->
+                        <div class="pt-6 pb-12">
+                            <button type="button" id="partner-to-step5-btn" class="btn-vld-primary w-full py-5 rounded-2xl text-lg shadow-xl shadow-brand-primary/20 flex items-center justify-center gap-2">
+                                Continuar a Verificación <span>✨</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- PASO 5: VERIFICACIÓN (OPCIONAL PERO RECOMENDADO) -->
+                    <div id="partner-verification-step" class="hidden space-y-8 animate-fadeIn">
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-secondary/10 text-brand-secondary font-bold text-sm">5</span>
+                            <h4 class="text-lg font-bold dark:text-white">Verificación de Calidad y Confianza</h4>
+                        </div>
+
+                        <div class="p-6 rounded-2xl bg-pink-500/10 border border-pink-500/20 text-brand-primary dark:text-pink-300 text-sm space-y-2">
+                            <p class="font-bold text-base flex items-center gap-2"><span>🌟</span> Destaca entre otros partners</p>
+                            <p class="font-light leading-relaxed">
+                                Para obtener tus insignias de verificación (🏅 Especialista/Vendedor verificado y 👤 Identidad comprobada), te sugerimos adjuntar tus soportes. Si no los tienes ahora, puedes omitir este paso para registrarte inmediatamente y cargarlos más adelante.
+                            </p>
+                        </div>
+
+                        <!-- Carga de Diplomas / Certificaciones -->
+                        <div class="space-y-3">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">1. Certificados y Diplomas Profesionales (PDF o Imagen)</label>
+                            <div class="relative group border-2 border-dashed border-gray-200 dark:border-valedissed-dark-border rounded-2xl p-6 hover:border-brand-primary transition-all text-center bg-gray-50/50 dark:bg-valedissed-dark-elevated cursor-pointer" id="drop-zone-cert">
+                                <input type="file" id="cert_file" accept="image/*,application/pdf" class="hidden">
+                                <div class="space-y-2" id="cert-upload-prompt">
+                                    <span class="text-3xl">🏅</span>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Arrastra tus diplomas o <span class="text-brand-primary font-bold hover:underline">explora archivos</span></p>
+                                    <p class="text-xs text-gray-400">PDF, JPG, PNG (máx. 10MB)</p>
+                                </div>
+                                <div class="hidden space-y-2 text-center" id="cert-upload-success">
+                                    <span class="text-3xl">📄</span>
+                                    <p class="text-sm font-bold text-green-600 dark:text-green-400" id="cert-file-name">Documento cargado</p>
+                                    <button type="button" id="cert-remove-btn" class="text-xs text-red-500 hover:underline">Quitar archivo</button>
+                                </div>
+                            </div>
+                            <input type="hidden" id="verified_certification_url">
+                        </div>
+
+                        <!-- Carga de Identidad (Selfie con Documento) -->
+                        <div class="space-y-3">
+                            <label class="block text-xs font-bold text-gray-400 uppercase tracking-widest">2. Verificación de Identidad KYC (Selfie con Cédula/ID)</label>
+                            <div class="relative group border-2 border-dashed border-gray-200 dark:border-valedissed-dark-border rounded-2xl p-6 hover:border-brand-secondary transition-all text-center bg-gray-50/50 dark:bg-valedissed-dark-elevated cursor-pointer" id="drop-zone-kyc">
+                                <input type="file" id="kyc_file" accept="image/*" class="hidden">
+                                <div class="space-y-2" id="kyc-upload-prompt">
+                                    <span class="text-3xl">📸</span>
+                                    <p class="text-sm font-medium text-gray-600 dark:text-gray-300">Arrastra tu selfie con tu ID o <span class="text-brand-secondary font-bold hover:underline">explora archivos</span></p>
+                                    <p class="text-xs text-gray-400">Sube una foto tuya sosteniendo tu ID al lado de tu cara</p>
+                                </div>
+                                <div class="hidden space-y-2 text-center" id="kyc-upload-success">
+                                    <span class="text-3xl">👤</span>
+                                    <p class="text-sm font-bold text-green-600 dark:text-green-400" id="kyc-file-name">Foto cargada</p>
+                                    <button type="button" id="kyc-remove-btn" class="text-xs text-red-500 hover:underline">Quitar foto</button>
+                                </div>
+                            </div>
+                            <input type="hidden" id="verified_id_face_url">
+                        </div>
+
+                        <!-- Estado / Cargando Archivos -->
+                        <div id="upload-progress-container" class="hidden space-y-2">
+                            <div class="flex justify-between text-xs font-bold text-brand-primary uppercase">
+                                <span id="upload-status-text">Subiendo documentos...</span>
+                                <span id="upload-percent">0%</span>
+                            </div>
+                            <div class="w-full bg-gray-200 dark:bg-valedissed-dark-border rounded-full h-2 overflow-hidden">
+                                <div id="upload-progress-bar" class="bg-brand-primary h-2 w-0 transition-all duration-300"></div>
+                            </div>
+                        </div>
+
+                        <!-- Botones de Acción -->
+                        <div class="flex flex-col sm:flex-row gap-4 pt-4 pb-12">
+                            <button type="button" id="partner-back-btn" class="sm:w-1/3 px-6 py-4 rounded-2xl border border-gray-200 dark:border-valedissed-dark-border text-gray-500 font-medium hover:bg-gray-50 dark:hover:bg-valedissed-dark-elevated transition-colors text-center">
+                                Atrás
+                            </button>
+                            <button type="button" id="partner-submit-request-btn" class="flex-1 btn-vld-primary py-4 rounded-2xl text-lg font-bold shadow-xl shadow-brand-primary/20 flex items-center justify-center gap-2">
+                                Enviar Solicitud <span>🚀</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="partner-form-message" class="hidden p-5 rounded-2xl text-sm font-medium"></div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Estabilización de Fondo (Anti-salto de barra de búsqueda móvil)
+        function fixBgHeight() {
+            const bg = document.getElementById('vld-bg-art-container');
+            if (bg) {
+                // Seteamos la altura en PX exactos para que ignore el resize del navegador al hacer scroll
+                bg.style.height = window.innerHeight + 'px';
+            }
+        }
+        window.addEventListener('load', fixBgHeight);
+        window.addEventListener('orientationchange', () => setTimeout(fixBgHeight, 200));
+    </script>
 </body>
+
 </html>

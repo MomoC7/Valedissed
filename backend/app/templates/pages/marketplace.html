@@ -1,0 +1,115 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Marketplace - Valedissed{% endblock %}
+
+{% block content %}
+<div class="py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div class="mb-12">
+            <h1 class="text-4xl font-extrabold text-gray-900 dark:text-gray-100 mb-4">
+                Marketplace <span class="metal-text-valedissed font-extrabold">Valedissed</span>
+            </h1>
+            <p class="text-xl text-gray-600 dark:text-gray-300">
+                Descubre los mejores productos y servicios de belleza y moda en Medellín
+            </p>
+        </div>
+
+        <!-- Tabs Navigation -->
+        <div class="flex space-x-2 mb-8 border-b border-pink-100/30 dark:border-valedissed-dark-border">
+            <button id="products-tab" class="tab-btn active px-6 py-3 text-sm font-bold text-brand-primary border-b-2 border-brand-primary transition-all duration-500 hover:text-brand-secondary" data-tab="products">
+                💄 Productos
+            </button>
+            <button id="services-tab" class="tab-btn px-6 py-3 text-sm font-bold text-gray-500 dark:text-gray-400 hover:text-brand-primary transition-all duration-500" data-tab="services">
+                ✂️ Servicios
+            </button>
+        </div>
+
+        <!-- Search and Filter -->
+        <div class="mb-10 flex flex-col sm:flex-row gap-4">
+            <div class="relative flex-1">
+                <input 
+                    type="text" 
+                    id="search-input" 
+                    placeholder="Buscar productos o servicios de lujo..." 
+                    class="w-full"
+                >
+            </div>
+            <select id="category-filter" class="min-w-[200px]">
+                <option value="">Todas las categorías</option>
+                <option value="maquillaje">Maquillaje</option>
+                <option value="cuidado-piel">Cuidado de Piel</option>
+                <option value="cabello">Cabello</option>
+                <option value="nails">Uñas</option>
+                <option value="pestanas">Pestañas</option>
+            </select>
+        </div>
+
+        <!-- Products Tab -->
+        <div id="products-content" class="tab-content">
+            <div id="products-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Productos cargados dinámicamente -->
+            </div>
+            <div id="no-products" class="text-center py-12 hidden">
+                <p class="text-gray-500 text-lg">No se encontraron productos activos.</p>
+            </div>
+        </div>
+
+        <!-- Services Tab -->
+        <div id="services-content" class="tab-content hidden">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <!-- Servicio 1 (Ejemplo) -->
+                <div class="bg-white dark:bg-valedissed-dark-surface rounded-lg shadow-md overflow-hidden hover:shadow-lg transition group border border-transparent dark:border-valedissed-dark-border">
+                    <div class="bg-gray-200 dark:bg-valedissed-dark-elevated h-64 flex items-center justify-center">
+                        <span class="text-6xl">✂️</span>
+                    </div>
+                    <div class="p-6">
+                        <h3 class="text-lg font-bold text-gray-900 dark:text-gray-100 mb-2">Servicio de Ejemplo</h3>
+                        <p class="text-gray-600 dark:text-gray-400 text-sm mb-4">Descripción del servicio a ofrecer</p>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-2xl font-bold text-brand-primary">$80.000</span>
+                            <div class="flex text-yellow-400">⭐⭐⭐⭐ (4.0)</div>
+                        </div>
+                        <button class="action-btn w-full bg-brand-primary text-white py-2 rounded-lg hover:bg-opacity-90 transition font-medium" data-action="book" data-type="service">
+                            Agendar
+                        </button>
+                        <button class="w-full mt-2 border border-gray-300 dark:border-valedissed-dark-border text-gray-700 dark:text-gray-300 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-valedissed-dark-elevated transition font-medium">
+                            Ver Detalles
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Mensaje si no hay servicios -->
+                <div id="no-services" class="col-span-full text-center py-12">
+                    <p class="text-gray-500 text-lg">Cargando servicios...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de autenticación requerida -->
+<div id="auth-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white dark:bg-valedissed-dark-surface rounded-lg p-8 max-w-md mx-auto text-center border border-transparent dark:border-valedissed-dark-border shadow-2xl">
+        <h2 class="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-4">Autenticación Requerida</h2>
+        <p class="text-gray-600 dark:text-gray-400 mb-6">
+            Necesitas iniciar sesión para realizar esta acción
+        </p>
+        <div class="flex gap-4">
+            <a href="/login" class="flex-1 bg-brand-primary text-white py-2 rounded-lg hover:bg-opacity-90 transition font-medium">
+                Iniciar Sesión
+            </a>
+            <a href="/register" class="flex-1 border border-brand-primary text-brand-primary py-2 rounded-lg hover:bg-brand-primary hover:text-white transition font-medium">
+                Registrarse
+            </a>
+        </div>
+        <button id="close-modal" class="mt-4 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
+            Cerrar
+        </button>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', path='js/marketplace.js') }}"></script>
+{% endblock %}
