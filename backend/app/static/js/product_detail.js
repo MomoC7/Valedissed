@@ -50,15 +50,48 @@ async function loadProductDetail() {
     }
 
     const product = await response.json();
+    
+    // Eliminar duplicados de imágenes
+    const imagesSet = new Set();
     const images = [];
-    if (product.cover_image_url) images.push(product.cover_image_url);
-    if (Array.isArray(product.images_urls)) images.push(...product.images_urls.filter(Boolean));
+    
+    // Agregar todas las imágenes sin duplicar
+    if (Array.isArray(product.images_urls)) {
+        product.images_urls.filter(Boolean).forEach(url => {
+            if (!imagesSet.has(url)) {
+                imagesSet.add(url);
+                images.push(url);
+            }
+        });
+    }
+    
+    // Si la portada no está en la lista, agregarla primero
+    if (product.cover_image_url && !imagesSet.has(product.cover_image_url)) {
+        images.unshift(product.cover_image_url);
+    } else if (product.cover_image_url && images.length > 0) {
+        // Si la portada está en la lista, moverla al principio
+        const coverIndex = images.indexOf(product.cover_image_url);
+        if (coverIndex > 0) {
+            images.splice(coverIndex, 1);
+            images.unshift(product.cover_image_url);
+        }
+    }
+
+    let currentIndex = 0;
 
     const sellerId = product.seller_id;
     const sellerName = product.profiles?.business_name || product.profiles?.username || 'Vendedor destacado';
 
     document.getElementById('product-category').textContent = product.category || 'Sin categoría';
-    document.getElementById('seller-badge').textContent = sellerName;
+    const sellerBadge = document.getElementById('seller-badge');
+    if (sellerBadge) {
+        sellerBadge.innerHTML = `<a href="/seller/${sellerId}" class="text-sm font-medium">${sellerName}</a>`;
+    }
+    const sellerAvatarEl = document.getElementById('seller-avatar');
+    if (sellerAvatarEl) {
+        sellerAvatarEl.src = product.profiles?.avatar_url || '/static/img/quilted_leather.png';
+        sellerAvatarEl.alt = sellerName;
+    }
     document.getElementById('product-title').textContent = product.name || 'Producto sin nombre';
     document.getElementById('product-description').textContent = product.description || 'Descripción no disponible.';
     document.getElementById('product-price').textContent = `$ ${formatPrice(product.price)}`;
@@ -72,7 +105,10 @@ async function loadProductDetail() {
     document.getElementById('seller-profile-link').href = `/seller/${sellerId}`;
 
     const mainImage = document.getElementById('main-image');
-    const gallery = document.getElementById('gallery-thumbnails');
+    const prevButton = document.getElementById('prev-button');
+    const nextButton = document.getElementById('next-button');
+    const dotsContainer = document.getElementById('gallery-dots');
+    
     mainImage.innerHTML = '';
 
     if (images.length === 0) {
@@ -84,17 +120,45 @@ async function loadProductDetail() {
         mainImg.className = 'object-cover w-full h-full';
         mainImage.appendChild(mainImg);
 
-        gallery.innerHTML = '';
-        images.forEach((src, index) => {
-            const thumb = document.createElement('button');
-            thumb.type = 'button';
-            thumb.className = 'overflow-hidden rounded-3xl border border-pink-100/60 dark:border-valedissed-dark-border focus:outline-none focus:ring-2 focus:ring-brand-primary/30';
-            thumb.innerHTML = `<img src="${src}" alt="Imagen ${index + 1}" class="object-cover w-full h-24">`;
-            thumb.addEventListener('click', () => {
-                mainImg.src = src;
+        // Función para actualizar la imagen y los dots
+        const updateGallery = () => {
+            mainImg.src = images[currentIndex];
+            // Actualizar dots
+            const dots = dotsContainer.querySelectorAll('button');
+            dots.forEach((dot, index) => {
+                dot.className = `w-3 h-3 rounded-full transition-all ${index === currentIndex ? 'bg-brand-primary w-8' : 'bg-gray-300 dark:bg-gray-600'}`;
             });
-            gallery.appendChild(thumb);
-        });
+        };
+
+        // Crear dots
+        dotsContainer.innerHTML = '';
+        if (images.length > 1) {
+            images.forEach((_, index) => {
+                const dot = document.createElement('button');
+                dot.type = 'button';
+                dot.className = `w-3 h-3 rounded-full transition-all ${index === currentIndex ? 'bg-brand-primary w-8' : 'bg-gray-300 dark:bg-gray-600'}`;
+                dot.addEventListener('click', () => {
+                    currentIndex = index;
+                    updateGallery();
+                });
+                dotsContainer.appendChild(dot);
+            });
+
+            // Mostrar botones de navegación
+            prevButton.classList.remove('hidden');
+            nextButton.classList.remove('hidden');
+
+            // Eventos de botones
+            prevButton.addEventListener('click', () => {
+                currentIndex = (currentIndex - 1 + images.length) % images.length;
+                updateGallery();
+            });
+
+            nextButton.addEventListener('click', () => {
+                currentIndex = (currentIndex + 1) % images.length;
+                updateGallery();
+            });
+        }
     }
 
     const attributesEl = document.getElementById('product-attributes');

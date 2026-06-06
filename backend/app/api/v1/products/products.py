@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
-from backend.app.db.supabase_client import supabase
+from backend.app.db.supabase_client import supabase, supabase_admin
 from backend.app.api.v1.auth.auth import get_current_user
 from backend.app.schemas.product import ProductCreate, ProductUpdate
 import time
@@ -61,6 +61,11 @@ def create_product(product_data: ProductCreate, current_user: str = Depends(_req
     data = product_data.model_dump()
     data["seller_id"] = current_user
     data["is_active"] = True
+
+    company_resp = supabase_admin.table("companies").select("id").eq("owner_id", current_user).limit(1).execute()
+    if company_resp.data:
+        data["company_id"] = company_resp.data[0].get("id")
+
     response = supabase.table("products").insert(data).execute()
     if not response.data:
         raise HTTPException(status_code=400, detail="No se pudo crear el producto.")
@@ -70,19 +75,28 @@ def create_product(product_data: ProductCreate, current_user: str = Depends(_req
 # ===== ACTUALIZAR PRODUCTO =====
 @router.put("/{product_id}")
 def update_product(product_id: str, product_data: ProductUpdate, current_user: str = Depends(_require_partner)):
-    # Verificar que el producto pertenece al usuario
-    existing = supabase.table("products").select("seller_id").eq("id", product_id).execute()
-    if not existing.data or existing.data[0]["seller_id"] != current_user:
-        raise HTTPException(status_code=403, detail="No tienes permiso para editar este producto.")
+    try:
+        logger.info(f"[Update Product] Starting for product {product_id}")
+        # Verificar que el producto pertenece al usuario
+        existing = supabase.table("products").select("seller_id").eq("id", product_id).execute()
+        if not existing.data or existing.data[0]["seller_id"] != current_user:
+            raise HTTPException(status_code=403, detail="No tienes permiso para editar este producto.")
 
-    update_data = product_data.model_dump(exclude_unset=True)
-    if not update_data:
-        raise HTTPException(status_code=400, detail="No hay datos para actualizar.")
+        update_data = product_data.model_dump(exclude_unset=True)
+        logger.info(f"[Update Product] Data to update: {update_data}")
+        
+        if not update_data:
+            raise HTTPException(status_code=400, detail="No hay datos para actualizar.")
 
-    response = supabase.table("products").update(update_data).eq("id", product_id).execute()
-    if not response.data:
-        raise HTTPException(status_code=400, detail="No se pudo actualizar el producto.")
-    return response.data[0]
+        response = supabase_admin.table("products").update(update_data).eq("id", product_id).execute()
+        logger.info(f"[Update Product] Supabase response: {response}")
+        
+        if not response.data:
+            raise HTTPException(status_code=400, detail="No se pudo actualizar el producto.")
+        return response.data[0]
+    except Exception as e:
+        logger.exception(f"[Update Product] Unexpected error: {str(e)}")
+        raise
 
 
 # ===== ELIMINAR PRODUCTO (desactivar) =====
@@ -97,6 +111,9 @@ def delete_product(product_id: str, current_user: str = Depends(_require_partner
     return {"message": "Producto eliminado correctamente."}
 
 
+import logging
+logger = logging.getLogger(__name__)
+
 # ===== SUBIR IMAGEN DE PRODUCTO =====
 @router.post("/{product_id}/images")
 async def upload_product_image(
@@ -105,36 +122,47 @@ async def upload_product_image(
     is_cover: bool = False,
     current_user: str = Depends(_require_partner)
 ):
-    # Verificar que el producto pertenece al usuario
-    existing = supabase.table("products").select("seller_id, images_urls, cover_image_url").eq("id", product_id).execute()
-    if not existing.data or existing.data[0]["seller_id"] != current_user:
-        raise HTTPException(status_code=403, detail="No tienes permiso para subir imágenes a este producto.")
+    try:
+        logger.info(f"[Upload Product Image] Starting for product {product_id}")
+        # Verificar que el producto pertenece al usuario
+        existing = supabase_admin.table("products").select("seller_id, images_urls, cover_image_url").eq("id", product_id).execute()
+        if not existing.data or existing.data[0]["seller_id"] != current_user:
+            raise HTTPException(status_code=403, detail="No tienes permiso para subir imágenes a este producto.")
 
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="El archivo debe ser una imagen válida.")
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="El archivo debe ser una imagen válida.")
 
-    current_images = existing.data[0].get("images_urls") or []
-    if len(current_images) >= 10:
-        raise HTTPException(status_code=400, detail="Has alcanzado el límite de 10 imágenes por producto.")
+        current_images = existing.data[0].get("images_urls") or []
+        if len(current_images) >= 10:
+            raise HTTPException(status_code=400, detail="Has alcanzado el límite de 10 imágenes por producto.")
 
-    file_bytes = await file.read()
-    file_ext = file.filename.split(".")[-1]
-    file_path = f"products/{current_user}/{product_id}/img_{int(time.time())}.{file_ext}"
+        file_bytes = await file.read()
+        file_ext = file.filename.split(".")[-1]
+        file_path = f"products/{current_user}/{product_id}/img_{int(time.time())}.{file_ext}"
+        logger.info(f"[Upload Product Image] Uploading to {file_path}")
 
-    res = supabase.storage.from_("media").upload(
-        path=file_path,
-        file=file_bytes,
-        file_options={"content-type": file.content_type}
-    )
-    public_url = supabase.storage.from_("media").get_public_url(file_path)
+        res = supabase_admin.storage.from_("valedissed_media").upload(
+            path=file_path,
+            file=file_bytes,
+            file_options={"content-type": file.content_type}
+        )
+        logger.info(f"[Upload Product Image] Storage upload response: {res}")
+        
+        public_url = supabase_admin.storage.from_("valedissed_media").get_public_url(file_path)
+        logger.info(f"[Upload Product Image] Public URL: {public_url}")
 
-    # Actualizar registro en DB
-    update_data = {"images_urls": current_images + [public_url]}
-    if is_cover or not existing.data[0].get("cover_image_url"):
-        update_data["cover_image_url"] = public_url
+        # Actualizar registro en DB
+        update_data = {"images_urls": current_images + [public_url]}
+        if is_cover or not existing.data[0].get("cover_image_url"):
+            update_data["cover_image_url"] = public_url
 
-    supabase.table("products").update(update_data).eq("id", product_id).execute()
-    return {"url": public_url, "is_cover": is_cover or not existing.data[0].get("cover_image_url")}
+        update_resp = supabase_admin.table("products").update(update_data).eq("id", product_id).execute()
+        logger.info(f"[Upload Product Image] DB update response: {update_resp}")
+        
+        return {"url": public_url, "is_cover": is_cover or not existing.data[0].get("cover_image_url")}
+    except Exception as e:
+        logger.exception(f"[Upload Product Image] Unexpected error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al subir la imagen: {str(e)}")
 
 
 # ===== ELIMINAR IMAGEN DE PRODUCTO =====

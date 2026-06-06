@@ -1,0 +1,404 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}Mi Carrito - Valedissed{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-brand-soft/50 to-white dark:from-valedissed-dark-bg dark:to-valedissed-dark-surface">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Encabezado -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent mb-2">
+                🛒 Mi Carrito
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400">Gestiona los productos que deseas</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Contenedor principal del carrito -->
+            <div class="lg:col-span-2">
+                <!-- Estado vacío -->
+                <div id="empty-cart-state" class="text-center py-16 bg-white dark:bg-valedissed-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-valedissed-dark-border hidden">
+                    <div class="text-6xl mb-4 opacity-40">🛍️</div>
+                    <h2 class="text-2xl font-bold text-brand-dark dark:text-white mb-2">Carrito vacío</h2>
+                    <p class="text-gray-600 dark:text-gray-400 mb-6">Aún no has agregado productos a tu carrito</p>
+                    <a href="/marketplace" class="inline-block px-6 py-3 bg-brand-primary text-white rounded-lg font-semibold hover:bg-brand-primary/90 transition-colors">
+                        Ir al Marketplace
+                    </a>
+                </div>
+
+                <!-- Lista de productos en carrito -->
+                <div id="cart-items-container" class="space-y-4">
+                    <!-- Los items se cargarán aquí dinámicamente -->
+                </div>
+            </div>
+
+            <!-- Panel lateral: resumen y acciones -->
+            <div class="lg:col-span-1">
+                <!-- Resumen del carrito -->
+                <div class="bg-white dark:bg-valedissed-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-valedissed-dark-border p-6 sticky top-20">
+                    <h2 class="text-xl font-bold text-brand-dark dark:text-white mb-6">Resumen del pedido</h2>
+                    
+                    <div class="space-y-4 mb-6 pb-6 border-b border-gray-200 dark:border-valedissed-dark-border">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Productos:</span>
+                            <span id="cart-total-items" class="font-semibold text-brand-dark dark:text-white">0</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Subtotal:</span>
+                            <span id="cart-subtotal" class="font-semibold text-brand-dark dark:text-white">$0.00</span>
+                        </div>
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-600 dark:text-gray-400">Envío:</span>
+                            <span class="font-semibold text-gray-500 dark:text-gray-400">Calculado al pagar</span>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between items-center mb-6 text-lg font-bold">
+                        <span class="text-brand-dark dark:text-white">Total:</span>
+                        <span class="text-brand-primary text-2xl" id="cart-total-price">$0.00</span>
+                    </div>
+
+                    <!-- Botones de acción -->
+                    <div class="space-y-3">
+                        <!-- Botón para publicar en el tablón -->
+                        <button id="btn-publish-wall" onclick="publishToWall()" 
+                            class="w-full px-4 py-3 bg-gradient-to-r from-brand-primary to-brand-secondary text-white rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            📌 Publicar en el Tablón
+                        </button>
+
+                        <!-- Botón para ir a checkout -->
+                        <button id="btn-checkout" onclick="goToCheckout()" 
+                            class="w-full px-4 py-3 bg-brand-dark dark:bg-white text-white dark:text-brand-dark rounded-lg font-semibold hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed">
+                            💳 Proceder a Pagar
+                        </button>
+
+                        <!-- Botón para seguir comprando -->
+                        <a href="/marketplace" class="block text-center px-4 py-3 bg-gray-100 dark:bg-valedissed-dark-elevated text-brand-dark dark:text-white rounded-lg font-semibold hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+                            Seguir Comprando
+                        </a>
+                    </div>
+
+                    <!-- Información sobre el tablón -->
+                    <div class="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-700">
+                        <p class="text-sm text-blue-800 dark:text-blue-300">
+                            <strong>💡 Tip:</strong> Al publicar en el tablón, otros usuarios podrán ver tu solicitud y ofrecerte alternativas.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para publicar en el tablón -->
+<div id="wall-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-valedissed-dark-surface rounded-2xl shadow-2xl max-w-md w-full p-6 border border-gray-100 dark:border-valedissed-dark-border">
+        <h2 class="text-2xl font-bold text-brand-dark dark:text-white mb-4">Publicar en el Tablón</h2>
+        
+        <form id="wall-form" onsubmit="submitWallRequest(event)">
+            <div class="mb-4">
+                <label class="block text-sm font-semibold text-brand-dark dark:text-white mb-2">
+                    Título (opcional)
+                </label>
+                <input type="text" id="wall-title" placeholder="Ej: Busco productos de belleza" 
+                    class="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-elevated text-brand-dark dark:text-white focus:ring-2 focus:ring-brand-primary placeholder-gray-400">
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-brand-dark dark:text-white mb-2">
+                    Mensaje adicional (opcional)
+                </label>
+                <textarea id="wall-message" placeholder="Ej: Preferencia de marca, fechas, etc." rows="3"
+                    class="w-full px-4 py-3 rounded-lg border border-gray-200 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-elevated text-brand-dark dark:text-white focus:ring-2 focus:ring-brand-primary placeholder-gray-400"></textarea>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-valedissed-dark-elevated p-4 rounded-lg mb-6">
+                <p class="text-sm font-semibold text-gray-600 dark:text-gray-400 mb-2">Productos que se publicarán:</p>
+                <div id="wall-items-summary" class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                    <!-- Se rellena dinámicamente -->
+                </div>
+                <p class="text-sm font-bold text-brand-primary mt-2" id="wall-total-summary">Total: $0.00</p>
+            </div>
+
+            <div class="flex gap-3">
+                <button type="button" onclick="closeWallModal()" 
+                    class="flex-1 px-4 py-3 bg-gray-100 dark:bg-valedissed-dark-elevated text-brand-dark dark:text-white rounded-lg font-semibold hover:bg-gray-200 transition-colors">
+                    Cancelar
+                </button>
+                <button type="submit" 
+                    class="flex-1 px-4 py-3 bg-gradient-to-r from-brand-primary to-brand-secondary text-white rounded-lg font-semibold hover:shadow-lg transition-all">
+                    Publicar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', path='js/cart-manager.js') }}?v=1"></script>
+<script>
+    // Inicializar carrito al cargar la página
+    document.addEventListener('DOMContentLoaded', () => {
+        loadCart();
+    });
+
+    async function loadCart() {
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                showEmptyCart();
+                return;
+            }
+
+            const response = await fetch('/api/v1/cart', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!response.ok) {
+                console.error('Error loading cart:', response.status);
+                showEmptyCart();
+                return;
+            }
+
+            const cartItems = await response.json();
+            if (!Array.isArray(cartItems) || cartItems.length === 0) {
+                showEmptyCart();
+                return;
+            }
+
+            renderCartItems(cartItems);
+            updateCartSummary(cartItems);
+            document.getElementById('empty-cart-state').classList.add('hidden');
+            document.getElementById('btn-publish-wall').disabled = false;
+            document.getElementById('btn-checkout').disabled = false;
+
+        } catch (error) {
+            console.error('Error loading cart:', error);
+            showEmptyCart();
+        }
+    }
+
+    function renderCartItems(items) {
+        const container = document.getElementById('cart-items-container');
+        container.innerHTML = '';
+
+        items.forEach(item => {
+            const itemEl = document.createElement('div');
+            itemEl.className = 'bg-white dark:bg-valedissed-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-valedissed-dark-border p-6 flex gap-4 hover:shadow-md transition-shadow';
+            
+            const productPrice = parseFloat(item.product?.price || 0);
+            const itemTotal = productPrice * (item.quantity || 1);
+
+            itemEl.innerHTML = `
+                ${item.product?.cover_image_url ? `<div class="w-24 h-24 rounded-lg overflow-hidden flex-shrink-0">
+                    <img src="${item.product.cover_image_url}" alt="${item.product.name}" class="w-full h-full object-cover">
+                </div>` : `<div class="w-24 h-24 rounded-lg bg-gray-100 dark:bg-valedissed-dark-elevated flex items-center justify-center flex-shrink-0">
+                    <span class="text-2xl">📦</span>
+                </div>`}
+
+                <div class="flex-1">
+                    <h3 class="text-lg font-bold text-brand-dark dark:text-white mb-2">${item.product?.name || 'Producto desconocido'}</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-3">${item.product?.description?.substring(0, 80) || 'Sin descripción'}...</p>
+                    
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2">
+                            <button onclick="updateQuantity('${item.product_id}', ${(item.quantity || 1) - 1})" class="px-2 py-1 bg-gray-200 dark:bg-valedissed-dark-elevated rounded text-sm font-bold hover:bg-gray-300">−</button>
+                            <span class="px-4 py-1 bg-gray-100 dark:bg-valedissed-dark-elevated rounded text-sm font-bold text-brand-dark dark:text-white">${item.quantity || 1}</span>
+                            <button onclick="updateQuantity('${item.product_id}', ${(item.quantity || 1) + 1})" class="px-2 py-1 bg-gray-200 dark:bg-valedissed-dark-elevated rounded text-sm font-bold hover:bg-gray-300">+</button>
+                        </div>
+                        <span class="text-lg font-bold text-brand-primary">$${itemTotal.toFixed(2)}</span>
+                    </div>
+                </div>
+
+                <button onclick="removeFromCart('${item.product_id}')" class="text-red-500 hover:text-red-700 transition-colors" title="Eliminar">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            `;
+
+            container.appendChild(itemEl);
+        });
+    }
+
+    function showEmptyCart() {
+        document.getElementById('cart-items-container').innerHTML = '';
+        document.getElementById('empty-cart-state').classList.remove('hidden');
+        document.getElementById('btn-publish-wall').disabled = true;
+        document.getElementById('btn-checkout').disabled = true;
+    }
+
+    function updateCartSummary(items) {
+        let totalItems = 0;
+        let totalPrice = 0;
+
+        items.forEach(item => {
+            const quantity = item.quantity || 1;
+            const price = parseFloat(item.product?.price || 0);
+            totalItems += quantity;
+            totalPrice += price * quantity;
+        });
+
+        document.getElementById('cart-total-items').textContent = totalItems;
+        document.getElementById('cart-subtotal').textContent = `$${totalPrice.toFixed(2)}`;
+        document.getElementById('cart-total-price').textContent = `$${totalPrice.toFixed(2)}`;
+    }
+
+    async function updateQuantity(productId, newQuantity) {
+        if (newQuantity < 1) {
+            await removeFromCart(productId);
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch(`/api/v1/cart/${productId}`, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ quantity: newQuantity })
+            });
+
+            if (response.ok) {
+                loadCart();
+                showToast('Cantidad actualizada', 'success');
+            } else {
+                showToast('Error al actualizar cantidad', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+            showToast('Error al actualizar cantidad', 'error');
+        }
+    }
+
+    async function removeFromCart(productId) {
+        try {
+            const token = localStorage.getItem('access_token');
+            const response = await fetch(`/api/v1/cart/${productId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (response.ok) {
+                loadCart();
+                showToast('Producto eliminado del carrito', 'success');
+            } else {
+                showToast('Error al eliminar producto', 'error');
+            }
+        } catch (error) {
+            console.error('Error removing from cart:', error);
+            showToast('Error al eliminar producto', 'error');
+        }
+    }
+
+    function publishToWall() {
+        const container = document.getElementById('cart-items-container');
+        const items = container.querySelectorAll('> div');
+        
+        if (items.length === 0) {
+            showToast('El carrito está vacío', 'warning');
+            return;
+        }
+
+        // Mostrar modal
+        document.getElementById('wall-modal').classList.remove('hidden');
+        
+        // Actualizar resumen en el modal
+        updateWallSummary();
+    }
+
+    function updateWallSummary() {
+        const container = document.getElementById('cart-items-container');
+        const items = container.querySelectorAll('> div');
+        const summaryContainer = document.getElementById('wall-items-summary');
+        summaryContainer.innerHTML = '';
+
+        let totalPrice = 0;
+        items.forEach(item => {
+            const titleEl = item.querySelector('h3');
+            const priceEl = item.querySelector('.text-lg.font-bold.text-brand-primary');
+            
+            if (titleEl && priceEl) {
+                const title = titleEl.textContent;
+                const price = parseFloat(priceEl.textContent.replace('$', ''));
+                totalPrice += price;
+
+                const line = document.createElement('div');
+                line.className = 'flex justify-between';
+                line.innerHTML = `<span>${title}</span><span class="font-semibold">$${price.toFixed(2)}</span>`;
+                summaryContainer.appendChild(line);
+            }
+        });
+
+        document.getElementById('wall-total-summary').textContent = `Total: $${totalPrice.toFixed(2)}`;
+    }
+
+    function closeWallModal() {
+        document.getElementById('wall-modal').classList.add('hidden');
+        document.getElementById('wall-form').reset();
+    }
+
+    async function submitWallRequest(event) {
+        event.preventDefault();
+
+        try {
+            const token = localStorage.getItem('access_token');
+            if (!token) {
+                showToast('Debes iniciar sesión', 'error');
+                return;
+            }
+
+            // Obtener items del carrito
+            const cartResponse = await fetch('/api/v1/cart', {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (!cartResponse.ok) {
+                showToast('Error al obtener carrito', 'error');
+                return;
+            }
+
+            const cartItems = await cartResponse.json();
+            
+            const payload = {
+                title: document.getElementById('wall-title').value,
+                message: document.getElementById('wall-message').value,
+                items: cartItems.map(item => ({
+                    product_id: item.product_id,
+                    quantity: item.quantity || 1
+                }))
+            };
+
+            const response = await fetch('/api/v1/wall', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                showToast('¡Solicitud publicada en el tablón!', 'success');
+                closeWallModal();
+                setTimeout(() => {
+                    window.location.href = '/wall';
+                }, 1500);
+            } else {
+                const error = await response.json();
+                showToast(error.detail || 'Error al publicar', 'error');
+            }
+        } catch (error) {
+            console.error('Error submitting wall request:', error);
+            showToast('Error al publicar solicitud', 'error');
+        }
+    }
+
+    function goToCheckout() {
+        // Redirigir a la vista de checkout
+        window.location.href = '/checkout';
+    }
+</script>
+{% endblock %}

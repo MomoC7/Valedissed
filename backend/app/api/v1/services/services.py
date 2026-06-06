@@ -1,5 +1,5 @@
 from fastapi import APIRouter, HTTPException, Depends, UploadFile, File
-from backend.app.db.supabase_client import supabase
+from backend.app.db.supabase_client import supabase, supabase_admin
 from backend.app.api.v1.auth.auth import get_current_user
 from backend.app.schemas.service import ServiceCreate, ServiceUpdate
 import time
@@ -53,6 +53,11 @@ def create_service(service_data: ServiceCreate, current_user: str = Depends(_req
     data = service_data.model_dump()
     data["provider_id"] = current_user
     data["is_active"] = True
+
+    company_resp = supabase_admin.table("companies").select("id").eq("owner_id", current_user).limit(1).execute()
+    if company_resp.data:
+        data["company_id"] = company_resp.data[0].get("id")
+
     response = supabase.table("services").insert(data).execute()
     if not response.data:
         raise HTTPException(status_code=400, detail="No se pudo crear el servicio.")
@@ -86,6 +91,9 @@ def delete_service(service_id: str, current_user: str = Depends(_require_partner
     return {"message": "Servicio eliminado correctamente."}
 
 
+import logging
+logger = logging.getLogger(__name__)
+
 # ===== SUBIR IMAGEN DE SERVICIO =====
 @router.post("/{service_id}/images")
 async def upload_service_image(
@@ -94,31 +102,42 @@ async def upload_service_image(
     is_cover: bool = False,
     current_user: str = Depends(_require_partner)
 ):
-    existing = supabase.table("services").select("provider_id, portfolio_images, cover_image_url").eq("id", service_id).execute()
-    if not existing.data or existing.data[0]["provider_id"] != current_user:
-        raise HTTPException(status_code=403, detail="No tienes permiso.")
+    try:
+        logger.info(f"[Upload Service Image] Starting for service {service_id}")
+        existing = supabase_admin.table("services").select("provider_id, portfolio_images, cover_image_url").eq("id", service_id).execute()
+        if not existing.data or existing.data[0]["provider_id"] != current_user:
+            raise HTTPException(status_code=403, detail="No tienes permiso.")
 
-    if not file.content_type.startswith("image/"):
-        raise HTTPException(status_code=400, detail="El archivo debe ser una imagen válida.")
+        if not file.content_type.startswith("image/"):
+            raise HTTPException(status_code=400, detail="El archivo debe ser una imagen válida.")
 
-    current_portfolio = existing.data[0].get("portfolio_images") or []
-    if len(current_portfolio) >= 6:
-        raise HTTPException(status_code=400, detail="Has alcanzado el límite de 6 fotos en el portafolio.")
+        current_portfolio = existing.data[0].get("portfolio_images") or []
+        if len(current_portfolio) >= 6:
+            raise HTTPException(status_code=400, detail="Has alcanzado el límite de 6 fotos en el portafolio.")
 
-    file_bytes = await file.read()
-    file_ext = file.filename.split(".")[-1]
-    file_path = f"services/{current_user}/{service_id}/img_{int(time.time())}.{file_ext}"
+        file_bytes = await file.read()
+        file_ext = file.filename.split(".")[-1]
+        file_path = f"services/{current_user}/{service_id}/img_{int(time.time())}.{file_ext}"
+        logger.info(f"[Upload Service Image] Uploading to {file_path}")
 
-    supabase.storage.from_("media").upload(
-        path=file_path,
-        file=file_bytes,
-        file_options={"content-type": file.content_type}
-    )
-    public_url = supabase.storage.from_("media").get_public_url(file_path)
+        res = supabase_admin.storage.from_("valedissed_media").upload(
+            path=file_path,
+            file=file_bytes,
+            file_options={"content-type": file.content_type}
+        )
+        logger.info(f"[Upload Service Image] Storage upload response: {res}")
 
-    update_data = {"portfolio_images": current_portfolio + [public_url]}
-    if is_cover or not existing.data[0].get("cover_image_url"):
-        update_data["cover_image_url"] = public_url
+        public_url = supabase_admin.storage.from_("valedissed_media").get_public_url(file_path)
+        logger.info(f"[Upload Service Image] Public URL: {public_url}")
 
-    supabase.table("services").update(update_data).eq("id", service_id).execute()
-    return {"url": public_url, "is_cover": is_cover or not existing.data[0].get("cover_image_url")}
+        update_data = {"portfolio_images": current_portfolio + [public_url]}
+        if is_cover or not existing.data[0].get("cover_image_url"):
+            update_data["cover_image_url"] = public_url
+
+        update_resp = supabase_admin.table("services").update(update_data).eq("id", service_id).execute()
+        logger.info(f"[Upload Service Image] DB update response: {update_resp}")
+        
+        return {"url": public_url, "is_cover": is_cover or not existing.data[0].get("cover_image_url")}
+    except Exception as e:
+        logger.exception(f"[Upload Service Image] Unexpected error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al subir la imagen: {str(e)}")

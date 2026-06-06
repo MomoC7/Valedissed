@@ -130,24 +130,9 @@ def review_partner_request(request_id: str, review: PartnerRequestReview, admin_
 
     if review.status == "approved":
 
-        # RESTAURADO: Todos los campos originales que tenías
         profile_update = {
-            "role": "partner",
-            "partner_type": partner_req.get("partner_type"),
-            "business_name": partner_req.get("business_name"),
-            "partner_phone": partner_req.get("partner_phone"),
-            "operation_zone": partner_req.get("operation_zone"),
-            "years_experience": partner_req.get("years_experience"),
-            "bio": partner_req.get("bio"),
-            "partner_product_categories": partner_req.get("partner_product_categories"),
-            "partner_service_categories": partner_req.get("partner_service_categories"),
-            "certification_url": partner_req.get("certification_url"),
-            "id_face_url": partner_req.get("id_face_url"),
-            "is_verified": bool(partner_req.get("certification_url")),
-            "is_identity_verified": bool(partner_req.get("id_face_url"))
+            "role": "partner"
         }
-        
-        # Mantenemos el uso de supabase_admin para evitar el error 500
         profile_response = supabase_admin.table("profiles") \
             .update(profile_update) \
             .eq("id", user_id) \
@@ -158,10 +143,38 @@ def review_partner_request(request_id: str, review: PartnerRequestReview, admin_
             logger.error(f'[Review Request] Profile update failed, response: {profile_response.__dict__}')
             raise HTTPException(status_code=500, detail="Error actualizando perfil.")
 
+        company_payload = {
+            "owner_id": user_id,
+            "business_name": partner_req.get("business_name"),
+            "description": partner_req.get("bio"),
+            "avatar_url": profile_response.data[0].get("avatar_url") if isinstance(profile_response.data, list) and len(profile_response.data) > 0 else None,
+            "phone": partner_req.get("partner_phone"),
+            "operation_zone": partner_req.get("operation_zone"),
+            "partner_type": partner_req.get("partner_type"),
+            "product_categories": partner_req.get("partner_product_categories"),
+            "service_categories": partner_req.get("partner_service_categories"),
+            "is_verified": bool(partner_req.get("certification_url"))
+        }
+
+        company_response = supabase_admin.table("companies").select("id").eq("owner_id", user_id).limit(1).execute()
+        if company_response.data:
+            company_update = supabase_admin.table("companies").update(company_payload).eq("owner_id", user_id).execute()
+            if company_update.data is None:
+                logger.error(f'[Review Request] Company update failed, response: {company_update.__dict__}')
+                raise HTTPException(status_code=500, detail="Error actualizando la empresa.")
+            company_data = company_update.data[0]
+        else:
+            company_insert = supabase_admin.table("companies").insert(company_payload).execute()
+            if company_insert.data is None or len(company_insert.data) == 0:
+                logger.error(f'[Review Request] Company insert failed, response: {company_insert.__dict__}')
+                raise HTTPException(status_code=500, detail="Error creando la empresa.")
+            company_data = company_insert.data[0]
+
         return {
             "message": "Solicitud aprobada correctamente.",
             "request": update_req.data[0],
-            "profile": profile_response.data[0] if isinstance(profile_response.data, list) and len(profile_response.data) > 0 else None
+            "profile": profile_response.data[0] if isinstance(profile_response.data, list) and len(profile_response.data) > 0 else None,
+            "company": company_data
         }
 
     return {"message": "Solicitud rechazada correctamente.", "request": update_req.data[0]}

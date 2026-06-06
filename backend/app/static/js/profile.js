@@ -128,6 +128,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             if (genderSelect && !genderSelect.disabled && genderSelect.value) {
                 updateData.gender = genderSelect.value;
             }
+            
+            console.log("[profile.js] Enviando datos:", updateData); // Agregamos log para ver los datos
 
             try {
                 const response = await fetch('/api/v1/auth/me', {
@@ -139,12 +141,14 @@ document.addEventListener('DOMContentLoaded', async () => {
                     body: JSON.stringify(updateData)
                 });
 
+                const responseData = await response.json(); // Obtenemos la respuesta siempre
+                console.log("[profile.js] Respuesta del servidor:", responseData); // Logueamos la respuesta
+                
                 if (response.ok) {
                     if (window.showToast) window.showToast('¡Perfil actualizado con éxito!', 'success');
                     if (typeof initNavbar === 'function') initNavbar();
                 } else {
-                    const errorData = await response.json();
-                    if (window.showToast) window.showToast(errorData.detail || 'Ocurrió un error al actualizar.', 'error');
+                    if (window.showToast) window.showToast(responseData.detail || 'Ocurrió un error al actualizar.', 'error');
                 }
             } catch (error) {
                 console.error("Error updating profile:", error);

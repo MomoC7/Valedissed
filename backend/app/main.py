@@ -2,9 +2,14 @@ from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 import os
+import logging
 from backend.app.core.config import settings
 from backend.app.api.v1.api import api_router 
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -12,6 +17,15 @@ app = FastAPI(
     version=settings.VERSION,
     debug=settings.DEBUG,
 )
+
+# --- Manejador global de excepciones ---
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    logger.exception(f"Unhandled exception at {request.url.path}")
+    return JSONResponse(
+        status_code=500,
+        content={"detail": f"Error interno del servidor: {str(exc)}"}
+    )
 
 # --- Configuración de Archivos ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -142,12 +156,12 @@ async def product_page(request: Request, product_id: str):
         context={"settings": settings, "product_id": product_id}
     )
 
-@app.get("/seller/{seller_id}")
-async def seller_profile_page(request: Request, seller_id: str):
+@app.get("/mi-empresa")
+async def my_company_page(request: Request):
     return templates.TemplateResponse(
         request=request,
-        name="pages/seller_profile.html",
-        context={"settings": settings, "seller_id": seller_id}
+        name="pages/seller/products.html",
+        context={"settings": settings}
     )
 
 @app.get("/seller/products")
@@ -163,6 +177,41 @@ async def seller_services_page(request: Request):
     return templates.TemplateResponse(
         request=request,
         name="pages/seller/services.html",
+        context={"settings": settings}
+    )
+
+@app.get("/seller/{seller_id}")
+async def seller_profile_page(request: Request, seller_id: str):
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/seller_profile.html",
+        context={"settings": settings, "seller_id": seller_id}
+    )
+
+@app.get("/wall")
+async def wall_page(request: Request):
+    """Tablón de deseos - The Wall"""
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/wall.html",
+        context={"settings": settings}
+    )
+
+@app.get("/cart")
+async def cart_page(request: Request):
+    """Página del carrito de compras"""
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/cart.html",
+        context={"settings": settings}
+    )
+
+@app.get("/checkout")
+async def checkout_page(request: Request):
+    """Página de pago/checkout"""
+    return templates.TemplateResponse(
+        request=request,
+        name="pages/checkout.html",
         context={"settings": settings}
     )
 

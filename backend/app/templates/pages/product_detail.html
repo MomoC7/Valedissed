@@ -7,11 +7,23 @@
     <div class="max-w-7xl mx-auto space-y-10">
         <section class="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] items-start">
             <div class="space-y-6">
-                <div id="product-gallery" class="grid gap-4">
-                    <div id="main-image" class="rounded-[2rem] overflow-hidden bg-gray-100 dark:bg-valedissed-dark-elevated h-[480px] flex items-center justify-center">
+                <div id="product-gallery" class="relative">
+                    <div id="main-image" class="rounded-[2rem] overflow-hidden bg-gray-100 dark:bg-valedissed-dark-elevated h-[480px] flex items-center justify-center relative">
                         <span class="text-gray-400">Cargando imagen...</span>
+                        <!-- Botones de navegación del carrusel -->
+                        <button id="prev-button" class="absolute left-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/50 p-3 rounded-full shadow-lg hover:bg-white dark:hover:bg-black/70 transition-colors hidden">
+                            <svg class="w-6 h-6 text-brand-dark dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+                            </svg>
+                        </button>
+                        <button id="next-button" class="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 dark:bg-black/50 p-3 rounded-full shadow-lg hover:bg-white dark:hover:bg-black/70 transition-colors hidden">
+                            <svg class="w-6 h-6 text-brand-dark dark:text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+                            </svg>
+                        </button>
                     </div>
-                    <div id="gallery-thumbnails" class="grid grid-cols-3 gap-3"></div>
+                    <!-- Indicadores de posición -->
+                    <div id="gallery-dots" class="flex justify-center gap-2 mt-4"></div>
                 </div>
 
                 <div id="product-details" class="space-y-6">
@@ -57,10 +69,13 @@
 
             <aside class="space-y-6">
                 <div class="rounded-[2rem] border border-pink-100/60 dark:border-valedissed-dark-border bg-white dark:bg-valedissed-dark-surface p-7 shadow-sm sticky top-24">
-                    <div class="mb-6">
-                        <p class="text-xs uppercase tracking-[0.25em] text-gray-400">Vendedor</p>
-                        <h2 id="seller-name" class="mt-3 text-2xl font-semibold text-brand-dark dark:text-gray-100"></h2>
-                        <p id="seller-description" class="mt-2 text-sm text-gray-500 dark:text-gray-400">Ver perfil completo del vendedor y su estilo exclusivo.</p>
+                    <div class="mb-6 flex items-center gap-4">
+                        <img id="seller-avatar" src="/static/img/quilted_leather.png" alt="Avatar vendedor" class="w-16 h-16 rounded-full object-cover bg-gray-100">
+                        <div>
+                            <p class="text-xs uppercase tracking-[0.25em] text-gray-400">Vendedor</p>
+                            <h2 id="seller-name" class="mt-1 text-2xl font-semibold text-brand-dark dark:text-gray-100"></h2>
+                            <p id="seller-description" class="mt-2 text-sm text-gray-500 dark:text-gray-400">Ver perfil completo del vendedor y su estilo exclusivo.</p>
+                        </div>
                     </div>
                     <div class="space-y-3">
                         <button id="buy-now-button" class="btn-vld-primary w-full text-center">Comprar ahora</button>

@@ -41,6 +41,11 @@ async function loadSellerProfile() {
         document.getElementById('seller-title').textContent = user.business_name || user.username || 'Vendedor';
         document.getElementById('seller-bio').textContent = user.partner_bio || user.bio || 'Tienda exclusiva con selección premium.';
         document.getElementById('seller-zone').textContent = user.operation_zone || 'Medellín y alrededores';
+        const avatarEl = document.getElementById('seller-avatar-large');
+        if (avatarEl) {
+            avatarEl.src = user.avatar_url || '/static/img/quilted_leather.png';
+            avatarEl.alt = user.business_name || user.username || 'Vendedor';
+        }
     }
 
     const productsGrid = document.getElementById('seller-products-list');

@@ -1,0 +1,278 @@
+{% extends "layouts/base.html" %}
+
+{% block title %}The Wall - Tablón de Deseos - Valedissed{% endblock %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-brand-soft/50 to-white dark:from-valedissed-dark-bg dark:to-valedissed-dark-surface">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Encabezado -->
+        <div class="mb-8">
+            <h1 class="text-4xl font-bold bg-gradient-to-r from-brand-primary to-brand-secondary bg-clip-text text-transparent mb-2">
+                📌 The Wall - Tablón de Deseos
+            </h1>
+            <p class="text-gray-600 dark:text-gray-400">Descubre qué productos buscan otras clientas. Publica tus deseos desde tu carrito.</p>
+        </div>
+
+        <!-- Filtros y opciones -->
+        <div class="mb-8 flex gap-4 flex-wrap">
+            <button id="filter-all" onclick="filterWallRequests('all')" 
+                class="px-6 py-2 bg-brand-primary text-white rounded-full font-semibold hover:shadow-lg transition-all">
+                Todos
+            </button>
+            <button id="filter-active" onclick="filterWallRequests('active')" 
+                class="px-6 py-2 bg-gray-100 dark:bg-valedissed-dark-elevated text-brand-dark dark:text-white rounded-full font-semibold hover:shadow-lg transition-all">
+                Activos
+            </button>
+            <button id="filter-completed" onclick="filterWallRequests('completed')" 
+                class="px-6 py-2 bg-gray-100 dark:bg-valedissed-dark-elevated text-brand-dark dark:text-white rounded-full font-semibold hover:shadow-lg transition-all">
+                Completados
+            </button>
+            
+            <div class="ml-auto">
+                <a href="/cart" class="inline-block px-6 py-2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white rounded-full font-semibold hover:shadow-lg transition-all">
+                    🛒 Mi Carrito
+                </a>
+            </div>
+        </div>
+
+        <!-- Estado de carga -->
+        <div id="loading-state" class="text-center py-12">
+            <div class="inline-block animate-spin">
+                <svg class="w-8 h-8 text-brand-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <p class="text-gray-600 dark:text-gray-400 mt-4">Cargando solicitudes...</p>
+        </div>
+
+        <!-- Estado vacío -->
+        <div id="empty-state" class="text-center py-16 bg-white dark:bg-valedissed-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-valedissed-dark-border hidden">
+            <div class="text-6xl mb-4 opacity-40">📭</div>
+            <h2 class="text-2xl font-bold text-brand-dark dark:text-white mb-2">No hay solicitudes activas</h2>
+            <p class="text-gray-600 dark:text-gray-400 mb-6">Sé la primera en publicar tus deseos desde tu carrito</p>
+            <a href="/marketplace" class="inline-block px-6 py-3 bg-brand-primary text-white rounded-lg font-semibold hover:bg-brand-primary/90 transition-colors">
+                Ir al Marketplace
+            </a>
+        </div>
+
+        <!-- Grid de solicitudes -->
+        <div id="wall-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Las solicitudes se cargan aquí dinámicamente -->
+        </div>
+    </div>
+</div>
+
+<!-- Modal de detalles de solicitud -->
+<div id="detail-modal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-valedissed-dark-surface rounded-2xl shadow-2xl max-w-2xl w-full max-h-96 overflow-y-auto border border-gray-100 dark:border-valedissed-dark-border">
+        <div class="p-6">
+            <div class="flex justify-between items-start mb-6">
+                <h2 class="text-2xl font-bold text-brand-dark dark:text-white" id="detail-title">Detalles de la Solicitud</h2>
+                <button onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-600">
+                    <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+                </button>
+            </div>
+
+            <div id="detail-content" class="space-y-4">
+                <!-- Se rellena dinámicamente -->
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    let currentFilter = 'active';
+    let allRequests = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        loadWallRequests();
+    });
+
+    async function loadWallRequests(excludeCompleted = true) {
+        try {
+            document.getElementById('loading-state').classList.remove('hidden');
+            document.getElementById('wall-grid').innerHTML = '';
+
+            const url = `/api/v1/wall?exclude_completed=${excludeCompleted}&limit=100`;
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`Error: ${response.status}`);
+            }
+
+            allRequests = await response.json();
+            
+            if (allRequests.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                document.getElementById('loading-state').classList.add('hidden');
+                return;
+            }
+
+            renderWallRequests(allRequests);
+            document.getElementById('loading-state').classList.add('hidden');
+            document.getElementById('empty-state').classList.add('hidden');
+
+        } catch (error) {
+            console.error('Error loading wall requests:', error);
+            document.getElementById('loading-state').innerHTML = `
+                <div class="text-center py-12">
+                    <p class="text-red-600 dark:text-red-400">Error al cargar las solicitudes</p>
+                </div>
+            `;
+        }
+    }
+
+    function renderWallRequests(requests) {
+        const grid = document.getElementById('wall-grid');
+        grid.innerHTML = '';
+
+        requests.forEach(request => {
+            const card = document.createElement('div');
+            card.className = 'bg-white dark:bg-valedissed-dark-surface rounded-2xl shadow-sm border border-gray-100 dark:border-valedissed-dark-border overflow-hidden hover:shadow-lg transition-all cursor-pointer';
+            
+            const statusBadge = request.is_completed 
+                ? '<span class="px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 text-xs font-bold rounded-full">✓ Completada</span>'
+                : '<span class="px-3 py-1 bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-xs font-bold rounded-full">● Activa</span>';
+
+            const userAge = request.user_age ? `, ${request.user_age} años` : '';
+            const userGender = request.user_gender === 'female' ? '👩' : request.user_gender === 'male' ? '👨' : '👤';
+
+            card.innerHTML = `
+                <div class="relative">
+                    <!-- Avatar y info del usuario -->
+                    <div class="p-6 bg-gradient-to-r from-brand-soft/30 to-brand-secondary/10 border-b border-gray-100 dark:border-valedissed-dark-border">
+                        <div class="flex items-start justify-between mb-4">
+                            <div class="flex items-center gap-3 flex-1">
+                                ${request.user_avatar ? `<img src="${request.user_avatar}" alt="${request.user_username}" class="w-12 h-12 rounded-full object-cover">` : `<div class="w-12 h-12 rounded-full bg-brand-primary/20 flex items-center justify-center text-xl">${userGender}</div>`}
+                                <div>
+                                    <h3 class="text-lg font-bold text-brand-dark dark:text-white">${request.user_username}</h3>
+                                    <p class="text-xs text-gray-600 dark:text-gray-400">${userAge}</p>
+                                </div>
+                            </div>
+                            <div>${statusBadge}</div>
+                        </div>
+                        ${request.title ? `<p class="text-sm font-semibold text-brand-primary mb-2">${request.title}</p>` : ''}
+                        ${request.message ? `<p class="text-sm text-gray-600 dark:text-gray-400">${request.message.substring(0, 100)}...</p>` : ''}
+                    </div>
+
+                    <!-- Productos -->
+                    <div class="p-6">
+                        <h4 class="text-sm font-bold text-gray-600 dark:text-gray-400 mb-3">Productos solicitados:</h4>
+                        <div class="space-y-2 mb-4">
+                            ${request.items.map(item => `
+                                <div class="flex justify-between items-start gap-2">
+                                    <div class="flex-1">
+                                        <p class="text-sm font-semibold text-brand-dark dark:text-white">${item.product_name}</p>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400">Cantidad: ${item.quantity}</p>
+                                    </div>
+                                    <p class="text-sm font-bold text-brand-primary">$${item.product_price?.toFixed(2)}</p>
+                                </div>
+                            `).join('')}
+                        </div>
+
+                        <!-- Resumen total -->
+                        <div class="border-t border-gray-200 dark:border-valedissed-dark-border pt-3 flex justify-between items-center">
+                            <span class="font-semibold text-gray-600 dark:text-gray-400">Total:</span>
+                            <span class="text-lg font-bold text-brand-primary">$${request.total_price.toFixed(2)}</span>
+                        </div>
+                    </div>
+
+                    <!-- Botón para ver detalles -->
+                    <div class="p-6 border-t border-gray-100 dark:border-valedissed-dark-border">
+                        <button onclick="showDetailModal('${request.id}')" 
+                            class="w-full px-4 py-2 bg-brand-primary text-white rounded-lg font-semibold hover:bg-brand-primary/90 transition-colors">
+                            Ver Detalles
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            grid.appendChild(card);
+        });
+    }
+
+    function showDetailModal(requestId) {
+        const request = allRequests.find(r => r.id === requestId);
+        if (!request) return;
+
+        const userAge = request.user_age ? `, ${request.user_age} años` : '';
+        const userGender = request.user_gender === 'female' ? '👩 Mujer' : request.user_gender === 'male' ? '👨 Hombre' : '👤 No especificado';
+
+        let detailHTML = `
+            <div class="grid grid-cols-3 gap-4 pb-4 border-b border-gray-200 dark:border-valedissed-dark-border">
+                <div>
+                    ${request.user_avatar ? `<img src="${request.user_avatar}" alt="${request.user_username}" class="w-full h-auto rounded-lg object-cover">` : `<div class="w-full h-32 rounded-lg bg-brand-primary/20 flex items-center justify-center text-4xl">👤</div>`}
+                </div>
+                <div class="col-span-2">
+                    <h3 class="text-xl font-bold text-brand-dark dark:text-white mb-2">${request.user_username}</h3>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2"><strong>Edad:</strong> ${userAge || 'No especificada'}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mb-2"><strong>Género:</strong> ${userGender}</p>
+                    <p class="text-sm text-gray-600 dark:text-gray-400"><strong>Publicado:</strong> ${new Date(request.created_at).toLocaleDateString()}</p>
+                </div>
+            </div>
+
+            <div class="py-4 border-b border-gray-200 dark:border-valedissed-dark-border">
+                ${request.title ? `<h4 class="text-lg font-bold text-brand-primary mb-2">${request.title}</h4>` : ''}
+                ${request.message ? `<p class="text-gray-600 dark:text-gray-400">${request.message}</p>` : ''}
+            </div>
+
+            <div class="py-4">
+                <h4 class="text-lg font-bold text-brand-dark dark:text-white mb-4">Productos Solicitados (${request.total_items}):</h4>
+                <div class="space-y-3">
+                    ${request.items.map(item => `
+                        <div class="flex gap-4 p-3 bg-gray-50 dark:bg-valedissed-dark-elevated rounded-lg">
+                            ${item.product_cover_image ? `<img src="${item.product_cover_image}" alt="${item.product_name}" class="w-16 h-16 rounded object-cover">` : `<div class="w-16 h-16 rounded bg-gray-200 dark:bg-valedissed-dark-border flex items-center justify-center">📦</div>`}
+                            <div class="flex-1">
+                                <h5 class="font-bold text-brand-dark dark:text-white">${item.product_name}</h5>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Cantidad: <strong>${item.quantity}</strong></p>
+                                <p class="text-sm font-bold text-brand-primary">$${item.product_price?.toFixed(2)}</p>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+
+            <div class="py-4 border-t border-gray-200 dark:border-valedissed-dark-border">
+                <div class="flex justify-between items-center">
+                    <span class="text-xl font-bold text-brand-dark dark:text-white">Total:</span>
+                    <span class="text-2xl font-bold text-brand-primary">$${request.total_price.toFixed(2)}</span>
+                </div>
+            </div>
+        `;
+
+        document.getElementById('detail-content').innerHTML = detailHTML;
+        document.getElementById('detail-modal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+        document.getElementById('detail-modal').classList.add('hidden');
+    }
+
+    function filterWallRequests(filter) {
+        currentFilter = filter;
+        
+        // Actualizar botones
+        document.querySelectorAll('[id^="filter-"]').forEach(btn => {
+            btn.classList.remove('bg-brand-primary', 'text-white');
+            btn.classList.add('bg-gray-100', 'dark:bg-valedissed-dark-elevated', 'text-brand-dark', 'dark:text-white');
+        });
+        
+        document.getElementById(`filter-${filter}`).classList.add('bg-brand-primary', 'text-white');
+        document.getElementById(`filter-${filter}`).classList.remove('bg-gray-100', 'dark:bg-valedissed-dark-elevated', 'text-brand-dark', 'dark:text-white');
+
+        // Cargar según filtro
+        if (filter === 'all') {
+            loadWallRequests(false);
+        } else if (filter === 'active') {
+            loadWallRequests(true);
+        } else if (filter === 'completed') {
+            // Mostrar solo completadas
+            const completed = allRequests.filter(r => r.is_completed);
+            renderWallRequests(completed);
+        }
+    }
+</script>
+{% endblock %}

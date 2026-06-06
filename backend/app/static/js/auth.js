@@ -83,12 +83,21 @@ async function handleRegister(e) {
         const data = await response.json();
         
         if (response.ok) {
+            if (window.showToast) {
+                window.showToast('Registro exitoso. Revisa tu email para confirmar. ✅', 'success');
+            }
             resultDiv.innerHTML = '<span class="text-green-600">Registro exitoso. Revisa tu email para confirmar.</span>';
         } else {
+            if (window.showToast) {
+                window.showToast(data.detail || 'Error en registro', 'error');
+            }
             resultDiv.innerHTML = `<span class="text-red-600">${data.detail || 'Error en registro'}</span>`;
         }
     } catch (error) {
         console.error('Register error:', error);
+        if (window.showToast) {
+            window.showToast('Error de conexión', 'error');
+        }
         resultDiv.innerHTML = '<span class="text-red-600">Error de conexión</span>';
     }
 }

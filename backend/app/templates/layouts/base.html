@@ -186,10 +186,10 @@
                     </div>
 
                     <!-- Cart Button -->
-                    <button @click="cartOpen = true; loadCart()" class="relative p-1.5 sm:p-2 text-gray-500 hover:text-brand-primary dark:text-gray-400 dark:hover:text-valedissed-dark-gold transition-colors focus:outline-none rounded-lg hover:bg-white/20 dark:hover:bg-white/10">
+                    <a href="/cart" class="relative p-1.5 sm:p-2 text-gray-500 hover:text-brand-primary dark:text-gray-400 dark:hover:text-valedissed-dark-gold transition-colors focus:outline-none rounded-lg hover:bg-white/20 dark:hover:bg-white/10" title="Mi carrito">
                         <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                        <span id="nav-cart-count" class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-brand-primary rounded-full hidden">0</span>
-                    </button>
+                        <span id="cart-badge" class="absolute top-0 right-0 inline-flex items-center justify-center px-1.5 py-0.5 text-[10px] font-bold leading-none text-white transform translate-x-1/4 -translate-y-1/4 bg-brand-primary rounded-full hidden">0</span>
+                    </a>
 
                     <div class="relative">
                         <!-- Dropdown Button Minimalista y Elegante -->
@@ -349,13 +349,9 @@
                     <!-- Enlaces de Partner (Inyectados via JS) -->
                     <div id="nav-menu-partner-links" class="hidden flex-col gap-2 mt-2 pt-2 border-t border-gray-100 dark:border-valedissed-dark-border">
                         <span class="px-5 text-xs font-bold text-gray-400 uppercase tracking-wider">Gestión Partner</span>
-                        <a href="/seller/products" @click="userMenuOpen = false"
+                        <a href="/mi-empresa" @click="userMenuOpen = false"
                             class="flex items-center px-5 py-3 rounded-2xl text-gray-700 dark:text-gray-200 hover:bg-brand-soft/80 dark:hover:bg-valedissed-dark-elevated hover:text-brand-primary transition-all duration-300 font-medium group">
-                            <span class="text-xl mr-4 group-hover:scale-110 transition-transform">🛍️</span> Mis Productos
-                        </a>
-                        <a href="/seller/services" @click="userMenuOpen = false"
-                            class="flex items-center px-5 py-3 rounded-2xl text-gray-700 dark:text-gray-200 hover:bg-brand-soft/80 dark:hover:bg-valedissed-dark-elevated hover:text-brand-primary transition-all duration-300 font-medium group">
-                            <span class="text-xl mr-4 group-hover:scale-110 transition-transform">✂️</span> Mis Servicios
+                            <span class="text-xl mr-4 group-hover:scale-110 transition-transform">🏢</span> Mi Empresa
                         </a>
                     </div>
                     
@@ -489,6 +485,7 @@
     <script src="{{ url_for('static', path='js/core.js') }}?v=1"></script>
     <script src="{{ url_for('static', path='js/ui-utils.js') }}?v=1"></script>
     <script src="{{ url_for('static', path='js/notifications.js') }}?v=1"></script>
+    <script src="{{ url_for('static', path='js/cart-manager.js') }}?v=1"></script>
     <script src="{{ url_for('static', path='js/navbar.js') }}?v=9"></script>
     <script src="{{ url_for('static', path='js/navbar-particles.js') }}?v=4"></script>
     <script src="{{ url_for('static', path='js/cart.js') }}?v=1"></script>
@@ -548,6 +545,28 @@
             });
         })();
     </script>
+    <!-- ============================================================
+         MODAL: CONFIRMACIÓN
+         ============================================================ -->
+    <div id="confirm-modal" class="hidden fixed inset-0 z-[999999] flex items-center justify-center">
+        <div id="confirm-modal-backdrop" class="absolute inset-0" style="background: rgba(33, 24, 32, 0.85) !important; backdrop-filter: blur(16px) !important; -webkit-backdrop-filter: blur(16px) !important;"></div>
+        <div class="relative w-full max-w-md bg-white dark:bg-valedissed-dark-surface rounded-3xl shadow-2xl border border-pink-100/20 dark:border-valedissed-dark-border overflow-hidden flex flex-col z-10">
+            <div class="px-8 py-6 flex items-center justify-between border-b border-gray-100 dark:border-valedissed-dark-border">
+                <h3 id="confirm-modal-title" class="text-xl font-serif font-bold text-brand-secondary dark:text-valedissed-dark-gold">Confirmar</h3>
+                <button id="close-confirm-modal-btn" class="rounded-full p-2 text-gray-400 hover:text-brand-primary hover:bg-pink-50 dark:hover:bg-valedissed-dark-elevated transition-all">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="px-8 py-6">
+                <p id="confirm-modal-message" class="text-gray-600 dark:text-gray-300">¿Estás seguro?</p>
+            </div>
+            <div class="px-8 pb-6 flex gap-3">
+                <button id="confirm-modal-cancel-btn" class="flex-1 btn-vld-secondary py-3">Cancelar</button>
+                <button id="confirm-modal-confirm-btn" class="flex-1 btn-vld-primary py-3">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ============================================================
          MODAL: FORMULARIO DE PARTNER (REDiseño Elegante Full-Page)
          ============================================================ -->
