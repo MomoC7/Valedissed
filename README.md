@@ -146,11 +146,19 @@ pytest -q
 
 ---
 
-Si quieres, puedo:
+Secciones adicionales recomendadas
 
-- Ejecutar las pruebas del proyecto.
-- Añadir un checklist de variables de entorno en un archivo `.env.example`.
-- Generar una sección con ejemplos de endpoints (postman/curl).
+- `.env.example`: plantilla de variables de entorno con las claves necesarias para desarrollo y despliegue.
+- Colección de API (Postman / OpenAPI): ejemplos de endpoints y colecciones para pruebas.
+- `docs/`: documentación técnica ampliada, diagramas y plan de desarrollo.
 
-He actualizado el `README.md` con esta versión más completa y profesional.
+Estado y roadmap
+
+- Estado: En desarrollo — priorizar integraciones con Supabase y Stripe, ampliar tests automatizados y documentar el despliegue.
+- Próximos pasos: añadir `.env.example`, publicar colección de API y completar pruebas de integración.
+
+Referencias clave
+
+- Configuración y settings: [backend/app/core/config.py](backend/app/core/config.py)
+- Migraciones: [alembic/](alembic)
 
